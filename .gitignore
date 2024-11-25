@@ -1,0 +1,23 @@
+**/.ipynb_checkpoints/
+**/models/
+**/aclImdb/
+**/logs/
+.idea/
+*.csv
+*.DS_Store
+**/.venv/
+**/.vscode
+
+# AzureML notebooks
+*.amlignore
+*.amltmp
+*.amltemp
+**/.ipynb_aml_checkpoints/
+**/__pycache__
+**/runs/
+
+**/ligtning_logs/
+
+# Tokenizers
+**/custom-gpt2-tokenizer/
+**/custom-qwen-tokenizer/

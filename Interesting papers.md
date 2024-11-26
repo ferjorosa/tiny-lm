@@ -1,4 +1,4 @@
-# Interesting papers
+# Small language models
 
 ## [TinyStories: How Small Can Language Models Be and Still Speak Coherent English?](https://arxiv.org/pdf/2305.07759)
 
@@ -13,11 +13,32 @@ This paper explores Super Tiny Language Models (STLMs), which aim to achieve hig
 
 ---
 
+## [Pythia: A Suite for Analyzing Large Language Models Across Training and Scaling](https://arxiv.org/pdf/2304.01373)
+
+This paper provides a lot of insights on training SLMs. Developed by Eleuther AI.
+
+---
+
+## [1.5-Pints Technical Report: Preatrining in Days, not months - Your Language model thrives on Quality data](https://arxiv.org/pdf/2408.03506)
+
+This paper presents a compute-efficient approach to pre-training a Language  Model – the "1.5-Pints" – in only 9 days, while outperforming state-of-the-art  models as an instruction-following assistant. Based on MT-Bench (a benchmark  that emulates human judgments), 1.5-Pints outperforms Apple’s OpenELM and Microsoft’s Phi.
+
+---
+
+## [Honey, I Shrunk the Language: Language Model Behavior at Reduced Scale](https://arxiv.org/pdf/2305.17266)
+
+Although focused on MLM tasks, it offers a similar perspective on what I want. The most interesting bit to me is using the [AO-CHILDES](https://www.sciencedirect.com/science/article/abs/pii/S0079742121000256) corpus of 21.000 words to reduce the vocabulary of the datasets
+
+---
+
 ## [Getting the most out of your tokenizer for pre-training and domain adaptation](https://arxiv.org/pdf/2402.01035v2)
 
 This paper highlights the importance of optimizing tokenization in large language models (LLMs), an often overlooked component. The authors show that the size, regular expression, and training data of a tokenizer can significantly affect model performance, including generation speed, memory usage, and context size. They conduct experiments with specialized Byte-Pair Encoding tokenizers, focusing on code generation tasks like HumanEval and MBPP. The study finds that fine-tuning a tokenizer on over 50 billion tokens can improve the generation speed and context size of pre-trained models, offering valuable recommendations for tokenizer design and fine-tuning strategies.
 
+
 ---
+
+# Reasoning
 
 ## [Marco-o1: Towards Open Reasoning Models for Open-Ended Solutions](https://arxiv.org/pdf/2411.14405)
 

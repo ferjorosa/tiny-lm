@@ -17,6 +17,7 @@
 **/runs/
 
 **/ligtning_logs/
+**/tb_logs/
 
 # Tokenizers
 **/custom-gpt2-tokenizer/

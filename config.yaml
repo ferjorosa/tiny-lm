@@ -1,23 +1,27 @@
 #name: "roneneldan/TinyStories"
 #dataset_text_col: "text"
 
+# Experiment name
 name: "tiny_qwen"
 
+# Training Datasets
 dataset_name: "Trelis/tiny-shakespeare"
 dataset_text_col: "Text"
 dataset_length_train: 472
 dataset_length_val: 0
 
+# Tokenizer
 tokenizer_dir: "tokenizer"
 
+# Learning parameters
 base_model: "Qwen/Qwen2.5-0.5B"
 max_seq_length: 2048
 batch_size: 32
 learning_rate: 5e-5
-
 precision: "16-mixed"
 num_epochs: 1
 compute_accelerator: "gpu"
 compute_devices: 1
+num_workers: 1
 
 logs_dir: "logs"

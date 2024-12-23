@@ -1,7 +1,8 @@
 import yaml
-from easydict import EasyDict
 import pytorch_lightning as pl
+from easydict import EasyDict
 from pytorch_lightning import loggers
+from transformers import PreTrainedTokenizerFast
 
 from src.data.lm_data_module import LanguageModelDataModule
 from src.model.lm_module import LanguageModelModule
@@ -20,13 +21,14 @@ logger = loggers.CSVLogger(
     name=f"{config.name}/{config.dataset_name}",
 )
 
-tokenizer = None
+tokenizer = PreTrainedTokenizerFast(tokenizer_file="tokenizer/tiny_qwen/tokenizer.json")
 
 data_module = LanguageModelDataModule(
     dataset_name=config.dataset_name,
     text_col=config.dataset_text_col,
     n_train_rows=config.dataset_length_train,
     n_val_rows=config.dataset_length_val,
+    batch_size=config.batch_size,
     max_seq_length=config.max_seq_length,
     num_workers=config.num_workers,
     tokenizer=tokenizer,
@@ -35,7 +37,8 @@ data_module = LanguageModelDataModule(
 
 model_module = LanguageModelModule(
     model_name_or_path=config.base_model,
-    learning_rate=config.learning_rate
+    learning_rate=config.learning_rate,
+    tokenizer=tokenizer,
 )
 
 trainer = pl.Trainer(

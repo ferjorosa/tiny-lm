@@ -33,6 +33,7 @@ def main():
     # Tokenizer
     logger.info("Initializing tokenizer from tokenizer file")
     tokenizer = PreTrainedTokenizerFast(tokenizer_file="tokenizer/tiny_qwen/tokenizer.json")
+    tokenizer.pad_token_id = tokenizer.eos_token_id
 
     # Data Module
     logger.info("Creating LanguageModelDataModule with provided configuration")

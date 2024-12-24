@@ -8,6 +8,8 @@ def train_tokenizer(
     base_model: str,
     vocab_size: int,
     batch_size: int,
+    name: str,
+    max_length: int ,
 ):
     def _batch_iterator():
         for i in tqdm(range(0, len(dataset), batch_size)):
@@ -21,5 +23,11 @@ def train_tokenizer(
         _batch_iterator(),
         vocab_size=vocab_size
     )
+
+    # Set tokenizer attributes
+    tokenizer.eos_token = base_tokenizer.eos_token
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.model_max_length = max_length
+    tokenizer.name_or_path = name  # Set the name for the tokenizer
 
     return tokenizer

@@ -24,8 +24,8 @@ lm_dataset = LanguageModelDataset(
 tokenizer = train_tokenizer(
     dataset=lm_dataset,
     base_model="Qwen/Qwen2.5-0.5B",
-    vocab_size=1024,
-    batch_size=128
+    vocab_size=config.vocab_size,
+    batch_size=config.tokenizer_batch_size
 )
 
 tokenizer.save_pretrained(f"tokenizer/{config.name}/{config.dataset_name}")

@@ -1,9 +1,8 @@
 import torch
 import pytorch_lightning as pl
-from typing import Optional
 from transformers import (
     AutoModelForCausalLM,
-    AutoTokenizer,
+    PretrainedConfig,
     AdamW,
     PreTrainedTokenizerFast
 )
@@ -11,17 +10,14 @@ from transformers import (
 class LanguageModelModule(pl.LightningModule):
     def __init__(
         self,
-        model_name_or_path: str,
+        model_config: PretrainedConfig,
+        tokenizer: PreTrainedTokenizerFast,
         learning_rate: float,
-        tokenizer: Optional[PreTrainedTokenizerFast] = None,
     ):
         super().__init__()
-        # Load the model and tokenizer from the given model name or path
-        self.model = AutoModelForCausalLM.from_pretrained(model_name_or_path)
-        if not tokenizer:
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name_or_path)
-        else:
-            self.tokenizer = tokenizer
+
+        self.model = AutoModelForCausalLM.from_config(model_config)
+        self.tokenizer = tokenizer
         self.learning_rate = learning_rate
 
     def forward(self, input_ids, attention_mask):

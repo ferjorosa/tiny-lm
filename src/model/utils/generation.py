@@ -1,5 +1,6 @@
 import torch
 
+
 def generate_text_simple(model, idx, max_new_tokens, context_size):
     """Greedy generation."""
     # idx is (batch, n_tokens) array of indices in the current context

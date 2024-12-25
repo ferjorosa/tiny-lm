@@ -1,8 +1,8 @@
 import torch
 from torch import nn
 
-class LayerNorm(nn.Module):
 
+class LayerNorm(nn.Module):
     def __init__(self, emb_dim):
         super().__init__()
         self.eps = 1e-5

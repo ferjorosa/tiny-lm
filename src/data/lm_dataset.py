@@ -1,5 +1,6 @@
 from torch.utils.data import Dataset
 
+
 class LanguageModelDataset(Dataset):
     """
     Iterable dataset where we know the number of samples.

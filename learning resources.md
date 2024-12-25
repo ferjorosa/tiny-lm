@@ -4,5 +4,4 @@ The video shows how to create a GPT-like language model step by step. He explain
 
 ## [## Andrej Karpathy's "Let's build the GPT Tokenizer"](https://www.youtube.com/watch?v=zduSFxRajkE)
 
-This video provides a deeper dive into GPT's tokenization process. 
-
+This video provides a deeper dive into GPT's tokenization process.

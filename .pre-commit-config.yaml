@@ -1,0 +1,30 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0  # Use the latest version when setting up
+    hooks:
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+
+  - repo: https://github.com/psf/black
+    rev: 23.1.0  # Use the latest version
+    hooks:
+      - id: black
+
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0  # Use the latest version
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - flake8-bugbear  # Optional: Provides additional checks
+          - flake8-import-order  # Optional: Checks import ordering
+        args: [--max-line-length=88]  # Match Black's line length
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.5.1  # Use the latest version
+    hooks:
+      - id: mypy
+        additional_dependencies:
+          - torch  # Ensures MyPy understands PyTorch imports
+          - pytorch-lightning  # Ensures MyPy understands PyTorch

@@ -1,22 +1,60 @@
-[tool.poetry]
+[project]
 name = "tiny-lm"
 version = "0.1.0"
 description = ""
-authors = ["Fernando Rodriguez <fernando.rodriguez@ailylabs.com>"]
 readme = "README.md"
+requires-python = ">=3.10.6"
+dependencies = [
+    "datasets>=3.2.0",
+    "easydict>=1.13",
+    "ipywidgets>=8.1.5",
+    "jupyter>=1.1.1",
+    "lightning>=2.5.0.post0",
+    "tensorboard>=2.18.0",
+    "tiktoken>=0.8.0",
+    "transformers>=4.47.1",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10.6,<3.11"
-datasets = "^3.1.0"
-lightning = "^2.4.0"
-transformers = "^4.46.3"
-jupyter = "^1.1.1"
-ipywidgets = "^8.1.5"
-tiktoken = "^0.8.0"
-tensorboard = "^2.18.0"
-easydict = "^1.13"
+[dependency-groups]
+dev = [
+    "pre-commit>=4.0.1",
+]
 
+[tool.ruff]
+line-length = 88  # black default
+indent-width = 4  # black default
 
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.ruff.format]
+# Enable reformatting of code snippets in docstrings.
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "B",  # flake8-bugbear
+    "C",  # flake8-comprehensions
+    "D",  # pydocstyle
+    "D213",  # docstring starts 2nd line
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort
+    "W",  # pycodestyle warnings
+]
+ignore = [
+    "D212",  # incompatible with D213
+]
+task-tags = ["TODO", "todo"]
+
+[tool.ruff.lint.pycodestyle]
+ignore-overlong-task-comments = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.mypy]
+ignore_missing_imports = true
+warn_no_return = false
+disallow_untyped_defs = false
+allow_redefinition = true

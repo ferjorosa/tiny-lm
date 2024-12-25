@@ -1,11 +1,12 @@
-import torch
 import pytorch_lightning as pl
+import torch
 from transformers import (
+    AdamW,
     AutoModelForCausalLM,
     PretrainedConfig,
-    AdamW,
-    PreTrainedTokenizerFast
+    PreTrainedTokenizerFast,
 )
+
 
 class LanguageModelModule(pl.LightningModule):
     def __init__(
@@ -24,7 +25,7 @@ class LanguageModelModule(pl.LightningModule):
         outputs = self.model(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            return_dict=True
+            return_dict=True,
         )
         return outputs.logits
 
@@ -42,27 +43,27 @@ class LanguageModelModule(pl.LightningModule):
         logits = self(shift_input_ids, shift_attention_mask)
 
         # Compute loss
-        loss_fct = torch.nn.CrossEntropyLoss(reduction='mean')
+        loss_fct = torch.nn.CrossEntropyLoss(reduction="mean")
         loss = loss_fct(
             logits.view(-1, logits.size(-1)),
-            shift_labels.view(-1)
+            shift_labels.view(-1),
         )
 
         return loss
 
     def training_step(self, batch, batch_idx):
         loss = self.common_step(batch, batch_idx)
-        self.log('train_loss', loss, prog_bar=True, on_step=True, on_epoch=False)
+        self.log("train_loss", loss, prog_bar=True, on_step=True, on_epoch=False)
         return loss
 
     def validation_step(self, batch, batch_idx):
         loss = self.common_step(batch, batch_idx)
-        self.log('val_loss', loss, prog_bar=True, on_step=False, on_epoch=True)
+        self.log("val_loss", loss, prog_bar=True, on_step=False, on_epoch=True)
         return loss
 
     def test_step(self, batch, batch_idx):
         loss = self.common_step(batch, batch_idx)
-        self.log('test_loss', loss)
+        self.log("test_loss", loss)
         return loss
 
     def predict_step(self, batch, batch_idx):
@@ -73,7 +74,7 @@ class LanguageModelModule(pl.LightningModule):
         generated_ids = self.model.generate(
             input_ids=input_ids,
             attention_mask=attention_mask,
-            max_length=50  # Adjust as needed
+            max_length=50,  # Adjust as needed
         )
 
         return generated_ids

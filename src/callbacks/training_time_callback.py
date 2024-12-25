@@ -1,6 +1,7 @@
 import time
-import pytorch_lightning as pl
 from pathlib import Path
+
+import pytorch_lightning as pl
 
 
 class TrainingTimeCallback(pl.Callback):
@@ -19,7 +20,8 @@ class TrainingTimeCallback(pl.Callback):
 
         # Convert the training time to hours, minutes, and seconds
         training_time_in_hms = time.strftime(
-            "%H:%M:%S", time.gmtime(training_time)
+            "%H:%M:%S",
+            time.gmtime(training_time),
         )
 
         # Store the training time for the epoch
@@ -36,12 +38,13 @@ class TrainingTimeCallback(pl.Callback):
                 + time.strptime(t, "%H:%M:%S").tm_min * 60
                 + time.strptime(t, "%H:%M:%S").tm_sec
                 for t in self.training_times
-            ]
+            ],
         )
 
         # Convert the total training time to hours, minutes, and seconds
         total_training_time_in_hms = time.strftime(
-            "%H:%M:%S", time.gmtime(total_training_time)
+            "%H:%M:%S",
+            time.gmtime(total_training_time),
         )
 
         # Get the checkpoint directory using pathlib

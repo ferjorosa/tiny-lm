@@ -1,9 +1,10 @@
 import torch
 import torch.nn as nn
 
-from src.model.utils.attention import MultiHeadAttention
 from src.model.utils.activation import GELU
+from src.model.utils.attention import MultiHeadAttention
 from src.model.utils.normalization import LayerNorm
+
 
 class GPTModel(nn.Module):
     def __init__(self, cfg):
@@ -13,11 +14,14 @@ class GPTModel(nn.Module):
         self.drop_emb = nn.Dropout(cfg["emb_drop_rate"])
 
         self.trf_blocks = nn.Sequential(
-            *[TransformerBlock(cfg) for _ in range(cfg["n_layers"])])
+            *[TransformerBlock(cfg) for _ in range(cfg["n_layers"])],
+        )
 
         self.final_norm = LayerNorm(cfg["emb_dim"])
         self.out_head = nn.Linear(
-            cfg["emb_dim"], cfg["vocab_size"], bias=False
+            cfg["emb_dim"],
+            cfg["vocab_size"],
+            bias=False,
         )
 
     def forward(self, in_idx):
@@ -41,7 +45,8 @@ class TransformerBlock(nn.Module):
             context_length=cfg["context_length"],
             num_heads=cfg["n_heads"],
             dropout=cfg["attn_drop_rate"],
-            qkv_bias=cfg["qkv_bias"])
+            qkv_bias=cfg["qkv_bias"],
+        )
         self.ff = FeedForward(cfg)
         self.norm1 = LayerNorm(cfg["emb_dim"])
         self.norm2 = LayerNorm(cfg["emb_dim"])
@@ -63,7 +68,6 @@ class TransformerBlock(nn.Module):
         x = x + shortcut  # Add the original input back
 
         return x
-
 
 
 class FeedForward(nn.Module):

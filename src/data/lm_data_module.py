@@ -1,22 +1,21 @@
 import pytorch_lightning as pl
-
-from torch.utils.data import DataLoader
 from datasets import Dataset, load_dataset
+from torch.utils.data import DataLoader
 from transformers import PreTrainedTokenizerFast
 
-class LanguageModelDataModule(pl.LightningDataModule):
 
+class LanguageModelDataModule(pl.LightningDataModule):
     def __init__(
-            self,
-            dataset_name: str,
-            text_col: str,
-            n_train_rows: int,
-            n_val_rows: int,
-            batch_size: int,
-            max_seq_length: int,
-            num_workers: int,
-            tokenizer: PreTrainedTokenizerFast,
-            random_seed: int = 42,
+        self,
+        dataset_name: str,
+        text_col: str,
+        n_train_rows: int,
+        n_val_rows: int,
+        batch_size: int,
+        max_seq_length: int,
+        num_workers: int,
+        tokenizer: PreTrainedTokenizerFast,
+        random_seed: int = 42,
     ):
         super().__init__()
         self.dataset_name = dataset_name
@@ -34,7 +33,7 @@ class LanguageModelDataModule(pl.LightningDataModule):
         ds = load_dataset(
             self.dataset_name,
             streaming=True,
-            trust_remote_code=True
+            trust_remote_code=True,
         )
 
         # Create dataset
@@ -49,14 +48,13 @@ class LanguageModelDataModule(pl.LightningDataModule):
             self.val_ds = self._create_dataset(
                 ds=ds,
                 split="validation",
-                n_rows=self.n_train_rows
+                n_rows=self.n_train_rows,
             )
         except Exception:
             self.val_ds = None
 
         # Tokenizer
         # TODO: In reality, we would initialize the tokenizer here
-
 
     def train_dataloader(self):
         return DataLoader(

@@ -4,6 +4,7 @@ from datasets import load_dataset
 
 from src.data.lm_dataset import LanguageModelDataset
 from src.tokenizer.utils import train_tokenizer
+from transformers import PreTrainedTokenizerFast
 
 # Load configuration from config.yaml
 with open('config.yaml', 'r') as config_file:
@@ -30,5 +31,12 @@ tokenizer = train_tokenizer(
     max_length=config.max_position_embeddings  # Maximum sequence_length
 )
 
-# Save the tokenizer
-tokenizer.save_pretrained(f"tokenizer/{config.name}/{config.dataset_name}")
+# Save the tokenizer with its configuration
+tokenizer_dir = f"tokenizer/{config.name}/{config.dataset_name}"
+tokenizer.save_pretrained(
+    tokenizer_dir,
+    # Explicitly save special tokens
+    special_tokens_map_file="special_tokens_map.json",
+    tokenizer_config_file="tokenizer_config.json"
+)
+

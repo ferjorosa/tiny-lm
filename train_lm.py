@@ -3,7 +3,7 @@ import pytorch_lightning as pl
 import logging
 from easydict import EasyDict
 from pytorch_lightning import loggers
-from transformers import PreTrainedTokenizerFast, Qwen2Config
+from transformers import AutoTokenizer, Qwen2Config
 
 from src.data.lm_data_module import LanguageModelDataModule
 from src.model.lm_module import LanguageModelModule
@@ -32,8 +32,17 @@ def main():
 
     # Tokenizer
     logger.info("Initializing tokenizer from tokenizer file")
-    tokenizer = PreTrainedTokenizerFast(tokenizer_file="tokenizer/tiny_qwen/tokenizer.json")
-    tokenizer.pad_token_id = tokenizer.eos_token_id
+    tokenizer_dir = f"tokenizer/{config.name}/{config.dataset_name}"
+
+    # Load the tokenizer with special tokens
+    tokenizer = AutoTokenizer.from_pretrained(
+        tokenizer_dir,
+        use_fast=True,
+        # Ensure special tokens are loaded
+        special_tokens_map_file=f"{tokenizer_dir}/special_tokens_map.json",
+        tokenizer_config_file=f"{tokenizer_dir}/tokenizer_config.json"
+    )
+
 
     # Data Module
     logger.info("Creating LanguageModelDataModule with provided configuration")

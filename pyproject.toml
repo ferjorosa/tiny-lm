@@ -10,6 +10,7 @@ authors = [
 ]
 dependencies = [
     "datasets>=4.5.0",
+    "pyyaml>=6.0.3",
     "tokenizers>=0.22.2",
     "torch>=2.10.0",
     "transformers>=5.0.0",

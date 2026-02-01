@@ -1924,6 +1924,7 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "datasets" },
+    { name = "pyyaml" },
     { name = "tokenizers" },
     { name = "torch" },
     { name = "transformers" },
@@ -1939,6 +1940,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "datasets", specifier = ">=4.5.0" },
+    { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "tokenizers", specifier = ">=0.22.2" },
     { name = "torch", specifier = ">=2.10.0", index = "https://download.pytorch.org/whl/cu128" },
     { name = "transformers", specifier = ">=5.0.0" },

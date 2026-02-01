@@ -1,4 +1,10 @@
-"""GELU activation function."""
+"""GELU activation function.
+
+Gaussian Error Linear Unit (GELU) is used in GPT-2 and many modern transformers.
+It's a smooth approximation of ReLU that works better for NLP tasks.
+
+Paper: https://arxiv.org/abs/1606.08415
+"""
 
 import torch
 import torch.nn as nn

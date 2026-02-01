@@ -1,4 +1,10 @@
-"""Layer Normalization."""
+"""Layer Normalization.
+
+LayerNorm normalizes activations across the feature dimension,
+which is more stable for transformers than BatchNorm (due to padding tokens)
+
+Paper: https://arxiv.org/abs/1607.06450
+"""
 
 import torch
 import torch.nn as nn

@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+
+# Virtual environment
+.venv/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store

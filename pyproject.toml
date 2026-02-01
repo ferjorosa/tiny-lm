@@ -1,0 +1,32 @@
+[project]
+name = "tiny-lm"
+version = "0.1.0"
+description = "Training small language models from scratch with multiple architectures"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [
+    {name = "ferjorosa"}
+]
+dependencies = [
+    "datasets>=4.5.0",
+    "tokenizers>=0.22.2",
+    "torch>=2.10.0",
+    "transformers>=5.0.0",
+]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["tiny_lm*"]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu128" }]
+torchvision = [{ index = "pytorch-cu128" }]

@@ -4,6 +4,7 @@ A simple two-layer MLP with configurable activation, commonly used in transforme
 The hidden layer typically has 4x the dimension of the input/output.
 
 Paper: "Attention is All You Need" (Vaswani et al., 2017)
+https://arxiv.org/abs/1706.03762
 """
 
 import torch
@@ -19,7 +20,7 @@ class FeedForward(nn.Module):
     Args:
         d_model: Input and output dimension
         d_ff: Hidden layer dimension (typically 4 * d_model)
-        activation: Activation function module (e.g., GELU(), ReLU())
+        activation: Activation function module (e.g., GELU())
         dropout: Dropout probability (default: 0.0)
     """
 

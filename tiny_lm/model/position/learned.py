@@ -1,4 +1,15 @@
-"""Learned positional embeddings."""
+"""Learned positional embeddings.
+
+Learned positional embeddings use a trainable lookup table where each position
+in the sequence has its own learnable embedding vector that's added to the token
+embeddings.
+
+This approach is simpler than sinusoidal encodings but requires more parameters.
+It was first introduced in GPT-1 and continued in GPT-2.
+
+Paper: "Improving Language Understanding by Generative Pre-Training" (Radford et al., 2018)
+https://cdn.openai.com/research-covers/language-unsupervised/language_understanding_paper.pdf
+"""
 
 import torch
 import torch.nn as nn

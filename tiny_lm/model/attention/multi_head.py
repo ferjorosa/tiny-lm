@@ -1,7 +1,8 @@
-"""Multi-Head Attention for GPT-2.
+"""Multi-Head Attention.
 
 Multi-head attention allows the model to jointly attend to information from
-different representation subspaces at different positions.
+different representation subspaces at different positions. This implementation
+includes causal masking for autoregressive language modeling (as used in GPT-2).
 
 Paper: "Attention is All You Need" (Vaswani et al., 2017)
 https://arxiv.org/abs/1706.03762

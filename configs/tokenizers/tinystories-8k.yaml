@@ -1,0 +1,13 @@
+name: "tinystories-8k"
+type: "BPE"
+vocab_size: 8192
+
+dataset_config: "configs/datasets/tinystories.yaml"
+
+special_tokens:
+  pad: "<pad>"
+  eos: "<eos>"
+  bos: "<bos>"
+  unk: "<unk>"
+
+output_dir: "tokenizers/tinystories-8k"

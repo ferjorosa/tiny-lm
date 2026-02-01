@@ -12,5 +12,5 @@ __pycache__/
 .idea/
 .DS_Store
 
-# Tokenizers
-tokenizers/
+# Tokenizer outputs at repo root
+/tokenizers/

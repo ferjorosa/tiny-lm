@@ -1,0 +1,16 @@
+# Coding Preferences
+
+## Philosophy
+- Start minimal, add complexity only when needed
+- Separate concerns: one responsibility per module
+- Explicit over implicit
+
+## Python
+- Modern type hints (`str | Path`, not `Union`)
+- Concise docstrings: description, Args, Returns. No examples.
+- No emojis in code or output
+
+## Project Patterns
+- YAML configs in `configs/`
+- Scripts with sensible defaults in `if __name__ == "__main__"`
+- Minimal print statements - only what's essential

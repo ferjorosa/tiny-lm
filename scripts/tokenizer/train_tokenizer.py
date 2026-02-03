@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 from tiny_lm.data import load_dataset_from_config
-from tiny_lm.data.dataset_loader import load_yaml_config
 from tiny_lm.tokenizer import train_bpe_tokenizer
+from tiny_lm.tokenizer.config import TokenizerConfig
 
 
 def main() -> None:
@@ -14,34 +14,33 @@ def main() -> None:
         sys.exit(1)
 
     config_path = Path(sys.argv[1])
-    config = load_yaml_config(config_path)
+    config = TokenizerConfig.from_yaml(config_path)
 
     # Load dataset
-    dataset_config = config["dataset_config"]
-    print(f"Loading dataset from {dataset_config}...")
-    dataset, text_field = load_dataset_from_config(dataset_config)
+    print(f"Loading dataset from {config.dataset_config}...")
+    dataset, dataset_config = load_dataset_from_config(config.dataset_config)
 
     # Create text iterator
     def text_iterator():
         for example in dataset["train"]:
-            yield example[text_field]
+            yield example[dataset_config.text_field]
 
     # Train tokenizer
     special_tokens = [
-        config["special_tokens"]["pad"],
-        config["special_tokens"]["eos"],
-        config["special_tokens"]["bos"],
-        config["special_tokens"]["unk"],
+        config.special_tokens["pad"],
+        config.special_tokens["eos"],
+        config.special_tokens["bos"],
+        config.special_tokens["unk"],
     ]
 
-    print(f"\nTraining BPE tokenizer (vocab_size={config['vocab_size']})...")
+    print(f"\nTraining BPE tokenizer (vocab_size={config.vocab_size})...")
     tokenizer = train_bpe_tokenizer(
         text_iterator=text_iterator(),
-        vocab_size=config["vocab_size"],
+        vocab_size=config.vocab_size,
         special_tokens=special_tokens,
-        output_dir=config["output_dir"],
+        output_dir=config.output_dir,
     )
-    print(f"Tokenizer saved to {config['output_dir']}/tokenizer.json")
+    print(f"Tokenizer saved to {config.output_dir}/tokenizer.json")
 
     # Test tokenizer
     print("\nTesting tokenizer:")

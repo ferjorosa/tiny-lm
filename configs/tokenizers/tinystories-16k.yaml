@@ -11,3 +11,4 @@ special_tokens:
   unk: "<unk>"
 
 output_dir: "tokenizers/tinystories-16k"
+tokenized_output_dir: "data/tinystories-16k-tokenized"

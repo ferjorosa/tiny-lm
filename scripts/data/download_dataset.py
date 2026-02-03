@@ -15,7 +15,7 @@ def main() -> None:
     config_path = Path(sys.argv[1])
 
     # Download and load dataset
-    dataset, text_field = load_dataset_from_config(config_path)
+    dataset, dataset_config = load_dataset_from_config(config_path)
 
     print("\nDataset loaded:")
     for split_name, split_data in dataset.items():
@@ -24,7 +24,7 @@ def main() -> None:
     # Apply length filter
     print("\nApplying length filter (min_length=10)...")
     length_filter = LengthFilter(min_length=10)
-    filtered_dataset = length_filter.apply(dataset, text_field)
+    filtered_dataset = length_filter.apply(dataset, dataset_config.text_field)
 
     print("\nFiltered dataset:")
     for split_name, split_data in filtered_dataset.items():

@@ -1,11 +1,13 @@
 """Pre-tokenize dataset and save as binary files."""
 
 import json
+import os
 import sys
 from pathlib import Path
 
 import numpy as np
 from datasets import Dataset
+from datasets.utils.logging import enable_progress_bar
 from transformers import PreTrainedTokenizerFast
 
 from tiny_lm.data import load_dataset_from_config
@@ -17,15 +19,44 @@ def tokenize_split(
     text_field: str,
     tokenizer: PreTrainedTokenizerFast,
     vocab_size: int,
+    num_proc: int | None = None,
+    batch_size: int = 1_000,
 ) -> np.ndarray:
-    """Tokenize a dataset split into token array."""
-    tokens = []
-    for ex in split:
-        text = ex[text_field].strip()
-        if text:
-            tokens.extend(tokenizer.encode(text, add_special_tokens=True))
+    """
+    Tokenize a dataset split
+    """
+
+    if num_proc is None:
+        num_proc = min(8, os.cpu_count() or 1)
+
+    def tokenize_batch(batch):
+        texts = [t.strip() for t in batch[text_field] if t and t.strip()]
+        enc = tokenizer(
+            texts,
+            add_special_tokens=True,
+            return_attention_mask=False,
+            return_token_type_ids=False,
+        )
+        return {"ids": enc["input_ids"]}
+
+    tokenized = split.map(
+        tokenize_batch,
+        batched=True,
+        batch_size=batch_size,
+        num_proc=num_proc,
+        remove_columns=split.column_names,
+        desc="Tokenizing",
+    )
+
     dtype = np.uint16 if vocab_size < 65536 else np.uint32
-    return np.array(tokens, dtype=dtype)
+
+    # Flatten into a single contiguous token stream
+    tokens = np.fromiter(
+        (tok for seq in tokenized["ids"] for tok in seq),
+        dtype=dtype,
+    )
+
+    return tokens
 
 
 def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
@@ -36,6 +67,9 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         tokenizer_config: Path to tokenizer YAML config
         seed: Random seed for splitting (only used if no val split exists)
     """
+
+    enable_progress_bar()
+
     # Load tokenizer config
     tok_config = TokenizerConfig.from_yaml(tokenizer_config)
 
@@ -47,59 +81,70 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         tokenizer_file=str(Path(tok_config.output_dir) / "tokenizer.json")
     )
 
-    # Load dataset and config
+    # Load dataset and dataset config
     dataset, dataset_config = load_dataset_from_config(tok_config.dataset_config)
 
-    # Get split names from config
-    train_split = dataset_config.splits["train"]
+    train_split_name = dataset_config.splits["train"]
     val_split_name = dataset_config.splits.get("validation")
 
     # Use existing validation split or create one
     if val_split_name and val_split_name in dataset:
-        train_data = dataset[train_split]
+        train_data = dataset[train_split_name]
         val_data = dataset[val_split_name]
+        used_existing_split = True
     else:
-        splits = dataset[train_split].train_test_split(
-            test_size=tok_config.val_split, seed=seed, shuffle=True
+        splits = dataset[train_split_name].train_test_split(
+            test_size=tok_config.val_split,
+            seed=seed,
+            shuffle=True,
         )
         train_data = splits["train"]
         val_data = splits["test"]
+        used_existing_split = False
 
-    # Process both splits
+    # Tokenize
     train_tokens = tokenize_split(
-        train_data, dataset_config.text_field, tokenizer, tokenizer.vocab_size
+        train_data,
+        dataset_config.text_field,
+        tokenizer,
+        tokenizer.vocab_size,
+        num_proc=tok_config.num_proc,
     )
+
     val_tokens = tokenize_split(
-        val_data, dataset_config.text_field, tokenizer, tokenizer.vocab_size
+        val_data,
+        dataset_config.text_field,
+        tokenizer,
+        tokenizer.vocab_size,
+        num_proc=tok_config.num_proc,
     )
 
     # Save binary files
     train_tokens.tofile(output_path / "train.bin")
     val_tokens.tofile(output_path / "val.bin")
 
-    # Save essential metadata
+    # Save metadata
     metadata = {
         "vocab_size": tokenizer.vocab_size,
         "bos_token_id": tokenizer.bos_token_id,
         "eos_token_id": tokenizer.eos_token_id,
         "pad_token_id": tokenizer.pad_token_id,
         "dtype": str(train_tokens.dtype),
-        "train_tokens": len(train_tokens),
-        "val_tokens": len(val_tokens),
-        "train_examples": len(train_data),
-        "val_examples": len(val_data),
-        "used_existing_split": val_split_name and val_split_name in dataset,
+        "train_tokens": int(len(train_tokens)),
+        "val_tokens": int(len(val_tokens)),
+        "train_examples": int(len(train_data)),
+        "val_examples": int(len(val_data)),
+        "used_existing_split": used_existing_split,
     }
 
-    # Add split info if we created one
-    if not (val_split_name and val_split_name in dataset):
+    if not used_existing_split:
         metadata["val_split"] = tok_config.val_split
         metadata["seed"] = seed
 
     with open(output_path / "metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
 
-    print(f"Tokenized {len(train_tokens):,} train + {len(val_tokens):,} val tokens")
+    print(f"\nTokenized {len(train_tokens):,} train + {len(val_tokens):,} val tokens")
     print(f"Saved to {output_path}/")
 
 
@@ -110,8 +155,7 @@ def main() -> None:
             "Example: tokenize_data.py configs/tokenizers/tinystories-8k.yaml"
         )
 
-    tokenizer_config = sys.argv[1]
-    tokenize_dataset(tokenizer_config=tokenizer_config)
+    tokenize_dataset(sys.argv[1])
 
 
 if __name__ == "__main__":

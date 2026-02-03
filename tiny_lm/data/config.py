@@ -14,12 +14,17 @@ class DatasetConfig:
     source: str
     text_field: str
     splits: dict[str, str]
+    path: str | None = None
 
     def __post_init__(self):
         """Validate config after initialization."""
         if "train" not in self.splits:
             raise ValueError(
                 "Dataset config must contain 'train' key in splits dictionary"
+            )
+        if self.source == "local" and not self.path:
+            raise ValueError(
+                "Dataset config must contain 'path' when source is 'local'"
             )
 
     @classmethod

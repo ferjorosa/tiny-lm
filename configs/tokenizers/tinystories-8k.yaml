@@ -2,7 +2,7 @@ name: "tinystories-8k"
 type: "BPE"
 vocab_size: 8192
 
-dataset_config: "configs/datasets/tinystories.yaml"
+dataset_config: "configs/dataset/tinystories.yaml"
 
 special_tokens:
   pad: "<pad>"

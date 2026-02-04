@@ -1,9 +1,6 @@
-# TinyStories Dataset Configuration
 name: "roneneldan/TinyStories"
 source: "huggingface"
 text_field: "text"
-
-# Dataset splits
 splits:
   train: "train"
   validation: "validation"

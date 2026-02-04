@@ -4,7 +4,7 @@ from pathlib import Path
 
 from datasets import DatasetDict, load_dataset
 
-from tiny_lm.data.loading.config import DatasetConfig
+from tiny_lm.dataset.config import DatasetConfig
 
 
 def load_dataset_from_config(

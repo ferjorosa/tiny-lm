@@ -3,10 +3,7 @@
 import sys
 from pathlib import Path
 
-from tiny_lm.data.loading import (
-    LengthFilter,
-    load_dataset_from_config,
-)
+from tiny_lm.dataset import LengthFilter, load_dataset_from_config
 
 
 def main() -> None:
@@ -38,5 +35,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        sys.argv.append("configs/datasets/tinystories.yaml")
+        sys.argv.append("configs/dataset/tinystories.yaml")
     main()

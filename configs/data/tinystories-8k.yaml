@@ -1,0 +1,10 @@
+train_path: "data/tinystories-8k-tokenized/train.bin"
+val_path: "data/tinystories-8k-tokenized/val.bin"
+block_size: 1024
+stride: 1024
+dtype: "uint16"
+eos_token_id: 2  # update from data/tinystories-8k-tokenized/metadata.json
+batch_size: 8
+num_workers: 4
+pin_memory: true
+drop_last: true

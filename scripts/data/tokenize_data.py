@@ -10,7 +10,7 @@ from datasets import Dataset
 from datasets.utils.logging import enable_progress_bar
 from transformers import PreTrainedTokenizerFast
 
-from tiny_lm.data import load_dataset_from_config
+from tiny_lm.data.loading import load_dataset_from_config
 from tiny_lm.tokenizer.config import TokenizerConfig
 
 

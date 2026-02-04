@@ -3,8 +3,10 @@
 import sys
 from pathlib import Path
 
-from tiny_lm.data import load_dataset_from_config
-from tiny_lm.data.filters import LengthFilter
+from tiny_lm.data.loading import (
+    LengthFilter,
+    load_dataset_from_config,
+)
 
 
 def main() -> None:

@@ -3,8 +3,8 @@
 import sys
 from pathlib import Path
 
-from tiny_lm.data import load_dataset_from_config
-from tiny_lm.tokenizer import train_bpe_tokenizer
+from tiny_lm.data.loading import load_dataset_from_config
+from tiny_lm.tokenizer.trainer import train_bpe_tokenizer
 from tiny_lm.tokenizer.config import TokenizerConfig
 
 

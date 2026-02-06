@@ -31,11 +31,15 @@ class TrainingConfig:
     accumulate_grad_batches: int
     grad_clip_norm: float
     scheduler: str
-    warmup_steps: int
+    warmup_ratio: float
     max_steps: int
     min_lr: float
     save_every_n_steps: int
     save_top_k: int
+    val_every_n_steps: int
+    system_metrics_every_n_steps: int
+    run_name: str | None = None
+    resume_from_checkpoint: str | None = None
 
     def __post_init__(self) -> None:
         if self.learning_rate <= 0:
@@ -44,14 +48,18 @@ class TrainingConfig:
             raise ValueError("accumulate_grad_batches must be positive")
         if self.grad_clip_norm < 0:
             raise ValueError("grad_clip_norm must be non-negative")
-        if self.warmup_steps < 0:
-            raise ValueError("warmup_steps must be non-negative")
+        if not 0 <= self.warmup_ratio <= 1:
+            raise ValueError("warmup_ratio must be between 0 and 1")
         if self.max_steps <= 0:
             raise ValueError("max_steps must be positive")
         if self.min_lr < 0:
             raise ValueError("min_lr must be non-negative")
         if self.scheduler not in {"cosine", "none"}:
             raise ValueError("scheduler must be 'cosine' or 'none'")
+        if self.val_every_n_steps <= 0:
+            raise ValueError("val_every_n_steps must be positive")
+        if self.system_metrics_every_n_steps <= 0:
+            raise ValueError("system_metrics_every_n_steps must be positive")
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "TrainingConfig":

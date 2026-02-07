@@ -1,20 +1,28 @@
-learning_rate: 3.0e-4
+# Precision and loss masking
+precision: "bf16-mixed"
+ignore_index: -100
+
+# Optimizer and training stability
 weight_decay: 0.1
 betas: [0.9, 0.95]
 eps: 1.0e-8
-ignore_index: -100
-precision: "bf16-mixed"
-accumulate_grad_batches: 1
 grad_clip_norm: 1.0
+
+# Learning-rate schedule
+learning_rate: 3.0e-4
 scheduler: "cosine"
 warmup_ratio: 0.01
-max_steps: 55000
-# total batch size = batch_size * seq_len * accumulate_grad_batches * num_devices
-# example: 8 * 1024 * 1 * 1 = 8192 tokens per update
-# 450M tokens / 8192 tokens per update = 55000 steps
 min_lr: 6.0e-5
-save_every_n_steps: 1000
-save_top_k: 3
-val_every_n_steps: 1000
+
+# Tokens, steps, and batching
+# total batch size = batch_size * seq_len * accumulate_grad_batches * num_devices
+# example: 56 * 1024 * 4 * 1 =  229376 tokens per update
+# 450M tokens / 229376 tokens per update = 1962 steps
+accumulate_grad_batches: 4
+max_steps: 1962
+val_every_n_steps: 100
 system_metrics_every_n_steps: 10
+
+# Checkpointing
+save_every_n_steps: 100
 resume_from_checkpoint: null

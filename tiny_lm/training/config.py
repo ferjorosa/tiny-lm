@@ -35,7 +35,6 @@ class TrainingConfig:
     max_steps: int
     min_lr: float
     save_every_n_steps: int
-    save_top_k: int
     val_every_n_steps: int
     system_metrics_every_n_steps: int
     run_name: str | None = None

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import os
+import shutil
 import subprocess
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -87,6 +88,14 @@ def build_trackio_run_name(args: argparse.Namespace) -> str:
     return f"{model_name}-{data_name}-{timestamp}"
 
 
+def copy_run_configs(run_dir: Path, args: argparse.Namespace) -> None:
+    configs_dir = run_dir / "configs"
+    configs_dir.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(args.model_config, configs_dir / Path(args.model_config).name)
+    shutil.copy2(args.training_config, configs_dir / Path(args.training_config).name)
+    shutil.copy2(args.data_config, configs_dir / Path(args.data_config).name)
+
+
 def main() -> None:
     args = parse_args()
 
@@ -116,9 +125,15 @@ def main() -> None:
         drop_last=data_config.drop_last,
     )
 
+    run_name = training_config.run_name or build_trackio_run_name(args)
+    run_dir = Path("runs") / run_name
+    checkpoints_dir = run_dir / "checkpoints"
+    copy_run_configs(run_dir, args)
+
     callbacks = [
         LearningRateMonitor(logging_interval="step"),
         ModelCheckpoint(
+            dirpath=str(checkpoints_dir),
             every_n_train_steps=training_config.save_every_n_steps,
             save_top_k=-1,
             save_last=True,
@@ -127,8 +142,6 @@ def main() -> None:
             log_every_n_steps=training_config.system_metrics_every_n_steps
         ),
     ]
-
-    run_name = training_config.run_name or build_trackio_run_name(args)
     trackio_logger = TrackioLogger(
         project=os.getenv("TRACKIO_PROJECT", "tiny-lm"),
         name=run_name,
@@ -141,7 +154,7 @@ def main() -> None:
     )
 
     trainer = pl.Trainer(
-        default_root_dir=str(Path("runs") / run_name),
+        default_root_dir=str(run_dir),
         accelerator="auto",
         devices="auto",
         precision=training_config.precision,

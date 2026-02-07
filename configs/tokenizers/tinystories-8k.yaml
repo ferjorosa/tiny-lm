@@ -2,7 +2,7 @@ name: "tinystories-8k"
 type: "BPE"
 vocab_size: 8192
 
-dataset_config: "configs/dataset/tinystories.yaml"
+dataset_config: "configs/datasets/tinystories.yaml"
 
 special_tokens:
   pad: "<pad>"
@@ -13,3 +13,4 @@ special_tokens:
 output_dir: "tokenizers/tinystories-8k"
 tokenized_output_dir: "data/tinystories-8k-tokenized"
 num_proc: null  # null = auto (min(8, cpu_count))
+num_threads: 16

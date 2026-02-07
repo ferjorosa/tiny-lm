@@ -2,13 +2,13 @@
 
 import json
 import os
+import pickle
 import sys
 from pathlib import Path
 
 import numpy as np
 from datasets import Dataset
 from datasets.utils.logging import enable_progress_bar
-from transformers import PreTrainedTokenizerFast
 
 from tiny_lm.dataset import load_dataset_from_config
 from tiny_lm.tokenizer.config import TokenizerConfig
@@ -17,8 +17,10 @@ from tiny_lm.tokenizer.config import TokenizerConfig
 def tokenize_split(
     split: Dataset,
     text_field: str,
-    tokenizer: PreTrainedTokenizerFast,
+    tokenizer,
     vocab_size: int,
+    bos_token_id: int,
+    eos_token_id: int,
     num_proc: int | None = None,
     batch_size: int = 1_000,
 ) -> np.ndarray:
@@ -30,14 +32,12 @@ def tokenize_split(
         num_proc = min(8, os.cpu_count() or 1)
 
     def tokenize_batch(batch):
-        texts = [t.strip() for t in batch[text_field] if t and t.strip()]
-        enc = tokenizer(
-            texts,
-            add_special_tokens=True,
-            return_attention_mask=False,
-            return_token_type_ids=False,
-        )
-        return {"ids": enc["input_ids"]}
+        texts = [t for t in batch[text_field] if t != ""]
+        ids = [
+            [bos_token_id] + tokenizer.encode_ordinary(text) + [eos_token_id]
+            for text in texts
+        ]
+        return {"ids": ids}
 
     tokenized = split.map(
         tokenize_batch,
@@ -76,10 +76,15 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
     output_path = Path(tok_config.tokenized_output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
 
-    # Load tokenizer
-    tokenizer = PreTrainedTokenizerFast(
-        tokenizer_file=str(Path(tok_config.output_dir) / "tokenizer.json")
-    )
+    # Load rustbpe+tiktoken tokenizer
+    tokenizer_path = Path(tok_config.output_dir) / "tokenizer.pkl"
+    with open(tokenizer_path, "rb") as f:
+        tokenizer = pickle.load(f)
+
+    bos_token_id = tokenizer.encode_single_token(tok_config.special_tokens["bos"])
+    eos_token_id = tokenizer.encode_single_token(tok_config.special_tokens["eos"])
+    pad_token_id = tokenizer.encode_single_token(tok_config.special_tokens["pad"])
+    unk_token_id = tokenizer.encode_single_token(tok_config.special_tokens["unk"])
 
     # Load dataset and dataset config
     dataset, dataset_config = load_dataset_from_config(tok_config.dataset_config)
@@ -107,7 +112,9 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         train_data,
         dataset_config.text_field,
         tokenizer,
-        tokenizer.vocab_size,
+        tokenizer.n_vocab,
+        bos_token_id,
+        eos_token_id,
         num_proc=tok_config.num_proc,
     )
 
@@ -115,7 +122,9 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         val_data,
         dataset_config.text_field,
         tokenizer,
-        tokenizer.vocab_size,
+        tokenizer.n_vocab,
+        bos_token_id,
+        eos_token_id,
         num_proc=tok_config.num_proc,
     )
 
@@ -125,10 +134,11 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
 
     # Save metadata
     metadata = {
-        "vocab_size": tokenizer.vocab_size,
-        "bos_token_id": tokenizer.bos_token_id,
-        "eos_token_id": tokenizer.eos_token_id,
-        "pad_token_id": tokenizer.pad_token_id,
+        "vocab_size": tokenizer.n_vocab,
+        "bos_token_id": int(bos_token_id),
+        "eos_token_id": int(eos_token_id),
+        "pad_token_id": int(pad_token_id),
+        "unk_token_id": int(unk_token_id),
         "dtype": str(train_tokens.dtype),
         "train_tokens": int(len(train_tokens)),
         "val_tokens": int(len(val_tokens)),

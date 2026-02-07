@@ -19,6 +19,7 @@ class TokenizerConfig:
     tokenized_output_dir: str
     val_split: float = 0.05
     num_proc: int | None = None
+    num_threads: int | None = None
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "TokenizerConfig":

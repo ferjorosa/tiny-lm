@@ -1,4 +1,13 @@
-"""Train a causal language model with Lightning."""
+"""Train a causal language model with Lightning.
+
+Notes:
+    - val_check_interval is in training batches, so we multiply by
+      accumulate_grad_batches to target optimizer (global) steps.
+    - ModelCheckpoint.every_n_train_steps is in optimizer (global) steps.
+    - log_every_n_steps controls logger emission frequency in (global) steps.
+    - Lightning's default progress bar counts batches; we override it with
+      OptimizerStepProgressBar so the bar reflects optimizer steps.
+"""
 
 from __future__ import annotations
 
@@ -165,7 +174,9 @@ def main() -> None:
         devices="auto",
         precision=training_config.precision,
         max_steps=training_config.max_steps,
-        val_check_interval=training_config.val_every_n_steps,
+        val_check_interval=training_config.val_every_n_steps
+        * training_config.accumulate_grad_batches,
+        log_every_n_steps=training_config.system_metrics_every_n_steps,
         accumulate_grad_batches=training_config.accumulate_grad_batches,
         gradient_clip_val=training_config.grad_clip_norm,
         callbacks=callbacks,

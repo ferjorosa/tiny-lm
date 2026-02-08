@@ -15,8 +15,7 @@ class OptimizerStepProgressBar(TQDMProgressBar):
         return bar
 
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx) -> None:
-        super().on_train_batch_end(trainer, pl_module, outputs, batch, batch_idx)
-        if self.main_progress_bar is None:
+        if self.train_progress_bar is None:
             return
-        self.main_progress_bar.n = trainer.global_step
-        self.main_progress_bar.refresh()
+        self.train_progress_bar.n = trainer.global_step
+        self.train_progress_bar.refresh()

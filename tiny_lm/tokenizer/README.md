@@ -1,56 +1,16 @@
-# Tokenizer Backends
+# Tokenizer
 
-Two BPE tokenizer training backends are available:
+Minimal tokenizer setup inspired by Karpathy's nanochat:
+https://github.com/karpathy/nanochat
 
-## HuggingFace (`trainer_hf.py`)
+We train with the Rust BPE implementation from `rustbpe` and export a tiktoken
+encoding for fast, simple inference. This keeps the runtime surface small and
+avoids HuggingFace tokenizer complexity.
 
-**Pros:**
-- Pure Python, easier to debug
-- Works out of the box with `tokenizers` package
-- Parallelism via `enable_parallelism()`
+Reference: https://github.com/karpathy/rustbpe
 
-**Cons:**
-- Can be slower for large datasets
-- Higher memory usage during training
-- Inference via HuggingFace tokenizers
+The regex pre-tokenization follows the GPT-4 style pattern used in nanochat.
+It preserves newlines and keeps word boundaries to avoid memory blowups.
 
-**Usage:**
-This backend is not wired into the training script right now.
-
-**Output:** `tokenizer.json`
-
-## RustBPE + tiktoken (`trainer_rust.py`) - Current Default
-
-**Pros:**
-- Much faster training (native Rust implementation)
-- Lower memory usage
-- Faster inference via tiktoken
-- Production-tested in nanochat
-
-**Cons:**
-- Requires additional dependencies: `rustbpe`, `tiktoken`
-- Less debugging visibility
-- No progress bar
-
-**Usage:**
-```bash
-# Install dependencies first
-uv pip install rustbpe tiktoken
-
-# Train with rust backend
-uv run python scripts/tokenizer/train_tokenizer.py
-```
-
-**Output:** `tokenizer.pkl` (tiktoken encoding)
-
-## Pattern
-
-Both use the same GPT-4 style regex pattern that preserves newlines:
-- Splits text on word boundaries (prevents memory explosion)
-- Keeps `\n` in tokens for text generation
-- Uses `\p{N}{1,2}` for numbers (optimized for smaller vocabs)
-
-## Recommendation
-
-We currently train with **RustBPE** by default. If you want to use the
-HuggingFace backend later, we can wire it back in.
+Output: `tokenizer.pkl` (tiktoken encoding)
+Metadata: `metadata.txt` is generated alongside the tokenizer for quick inspection (special tokens, vocab size, and config notes).

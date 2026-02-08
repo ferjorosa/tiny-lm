@@ -43,7 +43,7 @@ def train_bpe_tokenizer_rust(
 
     # Train using rustbpe
     print("Training with rustbpe...")
-    tokenizer = rustbpe.Tokenizer()
+    tokenizer = rustbpe.Tokenizer()  # type: ignore[attr-defined] - rustbpe exposes this at runtime
     vocab_size_no_special = vocab_size - len(special_tokens_list)
     if vocab_size_no_special < 256:
         raise ValueError(
@@ -82,7 +82,7 @@ def train_bpe_tokenizer_rust(
     # Also save a metadata file for easier inspection
     metadata_path = output_path / "metadata.txt"
     with open(metadata_path, "w") as f:
-        f.write(f"Tokenizer: rustbpe + tiktoken\n")
+        f.write("Tokenizer: rustbpe + tiktoken\n")
         f.write(f"Vocab size: {enc.n_vocab}\n")
         f.write(f"Special tokens: {special_tokens_list}\n")
         f.write(f"Split pattern: {pattern}\n")

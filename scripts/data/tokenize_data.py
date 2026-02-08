@@ -64,7 +64,7 @@ def tokenize_split(
     output_filename: str,
     num_proc: int | None = None,
     batch_size: int = 1_000,
-) -> tuple[int, int, np.dtype, dict[str, float]]:
+) -> tuple[int, int, np.dtype, dict[str, dict[str, float]]]:
     """
     Tokenize a dataset split
     """
@@ -95,7 +95,7 @@ def tokenize_split(
         desc="Tokenizing",
     )
 
-    dtype = np.uint16 if vocab_size < 65536 else np.uint32
+    dtype = np.dtype(np.uint16 if vocab_size < 65536 else np.uint32)
 
     # Stream-write tokens to disk to avoid large memory spikes
     output_file = output_path / output_filename
@@ -219,9 +219,7 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
     with open(output_path / "metadata.json", "w") as f:
         json.dump(metadata, f, indent=2)
 
-    print(
-        f"\nTokenized {train_tokens_count:,} train + {val_tokens_count:,} val tokens"
-    )
+    print(f"\nTokenized {train_tokens_count:,} train + {val_tokens_count:,} val tokens")
     print(f"Saved to {output_path}/")
 
 

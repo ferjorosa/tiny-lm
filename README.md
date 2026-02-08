@@ -1,14 +1,14 @@
 # tiny-lm
 
-A learning-focused repo for pre-training small language models from scratch, end to end. It takes inspiration from [nanochat](https://github.com/karpathy/nanochat) but uses PyTorch Lightning and a structure that fits my style better.
+A learning-focused repo for pre-training small language models from scratch, end to end. It takes inspiration from [nanochat](https://github.com/karpathy/nanochat) but uses [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/) and a structure that fits my style better.
 
 ## What is currently implemented
 
 - GPT-2 implementation from scratch
-- PyTorch Lightning for the training loop
+- [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/) for the training loop
 - [rustbpe](https://github.com/karpathy/rustbpe) + tiktoken tokenizer training and inference artifacts
 - Config-driven pipeline (model, data, tokenizer, training)
-- Trackio for the monitoring
+- [Trackio](https://huggingface.co/docs/trackio/index) for the monitoring
 
 ## Quick start
 

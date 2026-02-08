@@ -17,7 +17,13 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
 from tiny_lm.model.architectures.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
-from tiny_lm.training import CausalLMModule, TokensAndMemoryMonitor, TrainingConfig
+from tiny_lm.training import (
+    CausalLMModule,
+    GpuStatsMonitor,
+    OptimizerStepProgressBar,
+    TokensMonitor,
+    TrainingConfig,
+)
 from tiny_lm.tracking.trackio_logger import TrackioLogger
 
 
@@ -131,6 +137,7 @@ def main() -> None:
     copy_run_configs(run_dir, args)
 
     callbacks = [
+        OptimizerStepProgressBar(),
         LearningRateMonitor(logging_interval="step"),
         ModelCheckpoint(
             dirpath=str(checkpoints_dir),
@@ -138,9 +145,8 @@ def main() -> None:
             save_top_k=-1,
             save_last=True,
         ),
-        TokensAndMemoryMonitor(
-            log_every_n_steps=training_config.system_metrics_every_n_steps
-        ),
+        TokensMonitor(log_every_n_steps=training_config.system_metrics_every_n_steps),
+        GpuStatsMonitor(log_every_n_steps=training_config.system_metrics_every_n_steps),
     ]
     trackio_logger = TrackioLogger(
         project=os.getenv("TRACKIO_PROJECT", "tiny-lm"),

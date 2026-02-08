@@ -40,6 +40,16 @@ It took ~25 minutes on an RTX 5090. I am sure it can be optimized.
 | --- | --- |
 | ![Val loss](images/tinystories_8k_gpt2_2l_val_loss.png) | ![Val perplexity](images/tinystories_8k_gpt2_2l_val_ppl.png) |
 
+Example text generated:
+
+```
+<bos>Once upon a time there was a little girl called Anna. She was three years old and very curious. One day she decided to take a look. She stepped into the field and saw a beautiful butterfly fluttering around. She felt so happy and she wanted to follow it.
+
+Suddenly, Anna heard a voice. It was her mom, who had said to go to the pond. Anna was so excited! She followed her mom and Dad to the pond. They got a bucket of water and a bucket of water.
+
+Anna carefully put the net in the bucket and then she washed it in the water. Then she added it to the pond. She then swam back to the pond and touched the butterfly. It felt so good! Anna was so proud of herself!<eos>
+```
+
 ## Next steps
 
 - Review and optimize the code

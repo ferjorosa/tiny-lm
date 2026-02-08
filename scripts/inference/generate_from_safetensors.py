@@ -1,4 +1,4 @@
-"""Minimal GPT-2 inference script."""
+"""Minimal GPT-2 inference script from SafeTensors weights."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ import pickle
 
 import tiktoken
 import torch
+from safetensors.torch import load_file as load_safetensors
 
 from tiny_lm.model.architectures.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
@@ -19,10 +20,10 @@ from tiny_lm.tokenizer.config import TokenizerConfig
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run minimal GPT-2 inference.")
     parser.add_argument(
-        "--checkpoint",
+        "--safetensors",
         type=str,
         required=True,
-        help="Path to a Lightning checkpoint (.ckpt).",
+        help="Path to SafeTensors weights (.safetensors).",
     )
     parser.add_argument(
         "--model-config",
@@ -57,18 +58,6 @@ def parse_args() -> argparse.Namespace:
         help="Prepend BOS token if the tokenizer defines one.",
     )
     return parser.parse_args()
-
-
-def load_checkpoint_state(checkpoint_path: str, device: str) -> dict[str, torch.Tensor]:
-    checkpoint = torch.load(checkpoint_path, map_location=device)
-    state_dict = checkpoint.get("state_dict", checkpoint)
-    if any(key.startswith("model.") for key in state_dict):
-        state_dict = {
-            key[len("model.") :]: value
-            for key, value in state_dict.items()
-            if key.startswith("model.")
-        }
-    return state_dict
 
 
 def apply_temperature(logits: torch.Tensor, temperature: float) -> torch.Tensor:
@@ -131,9 +120,9 @@ def generate(
 
 def main() -> None:
     args = parse_args()
-    checkpoint_path = Path(args.checkpoint)
-    if not checkpoint_path.exists():
-        raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
+    weights_path = Path(args.safetensors)
+    if not weights_path.exists():
+        raise FileNotFoundError(f"SafeTensors file not found: {weights_path}")
 
     config = GPT2Config.from_yaml(args.model_config)
     model = GPT2(
@@ -148,7 +137,13 @@ def main() -> None:
         resid_dropout=0.0,
         ffn_dropout=0.0,
     )
-    state_dict = load_checkpoint_state(str(checkpoint_path), args.device)
+    state_dict = load_safetensors(str(weights_path))
+    # save_model stores tied weights only once. In GPT-2 models the input
+    # embeddings and lm_head share the same tensor, so the safetensors file
+    # only keeps one key. Re-create the missing alias so load_state_dict
+    # sees both names.
+    if "token_emb.weight" not in state_dict and "lm_head.weight" in state_dict:
+        state_dict["token_emb.weight"] = state_dict["lm_head.weight"]
     model.load_state_dict(state_dict, strict=True)
     model.to(args.device)
     model.eval()
@@ -177,8 +172,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         sys.argv.extend(
             [
-                "--checkpoint",
-                "runs/gpt2-8k-2l-tinystories-8k-20260208-103335/checkpoints/last.ckpt",
+                "--safetensors",
+                "hf_export/ferjorosa__tiny-lm-tinystories-8k-gpt2-2l/model.safetensors",
                 "--model-config",
                 "configs/models/gpt2-8k-2l.yaml",
                 "--tokenizer",
@@ -188,7 +183,7 @@ if __name__ == "__main__":
                 "--prompt",
                 "Once upon a time",
                 "--max-new-tokens",
-                "150",
+                "300",
                 "--temperature",
                 "0.8",
                 "--top-p",

@@ -20,8 +20,8 @@ min_lr: 6.0e-5
 # 450M tokens / 229376 tokens per update = 1962 steps
 accumulate_grad_batches: 4
 max_steps: 1962
-val_every_n_steps: 100
-system_metrics_every_n_steps: 10
+val_every_n_steps: 50
+system_metrics_every_n_steps: 5
 
 # Checkpointing
 save_every_n_steps: 100

@@ -30,6 +30,7 @@ This backend is not wired into the training script right now.
 **Cons:**
 - Requires additional dependencies: `rustbpe`, `tiktoken`
 - Less debugging visibility
+- No progress bar
 
 **Usage:**
 ```bash

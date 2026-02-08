@@ -7,8 +7,11 @@ precision: "bf16-mixed"
 accumulate_grad_batches: 1
 grad_clip_norm: 1.0
 scheduler: "cosine"
-warmup_steps: 2000
-max_steps: 100000
+warmup_ratio: 0.5
+max_steps: 2
 min_lr: 6.0e-5
-save_every_n_steps: 1000
-save_top_k: 3
+save_every_n_steps: 1
+save_top_k: 1
+val_every_n_steps: 1
+system_metrics_every_n_steps: 1
+resume_from_checkpoint: null

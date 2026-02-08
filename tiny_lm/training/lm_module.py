@@ -46,7 +46,18 @@ class CausalLMModule(pl.LightningModule):
         batch_idx: int,
     ) -> torch.Tensor:
         loss = self._common_step(batch)
+        perplexity = torch.exp(loss.detach())
+        optimizer = self.trainer.optimizers[0]
+        lr = optimizer.param_groups[0]["lr"]
+        self.log("lr", lr, on_step=True, on_epoch=False, prog_bar=False)
         self.log("train_loss", loss, on_step=True, on_epoch=False, prog_bar=True)
+        self.log(
+            "train_ppl",
+            perplexity,
+            on_step=True,
+            on_epoch=False,
+            prog_bar=False,
+        )
         return loss
 
     def validation_step(
@@ -55,7 +66,15 @@ class CausalLMModule(pl.LightningModule):
         batch_idx: int,
     ) -> torch.Tensor:
         loss = self._common_step(batch)
+        perplexity = torch.exp(loss.detach())
         self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log(
+            "val_ppl",
+            perplexity,
+            on_step=False,
+            on_epoch=True,
+            prog_bar=False,
+        )
         return loss
 
     def configure_optimizers(self):
@@ -70,7 +89,7 @@ class CausalLMModule(pl.LightningModule):
             return optimizer
 
         min_lr_ratio = self.config.min_lr / self.config.learning_rate
-        warmup_steps = self.config.warmup_steps
+        warmup_steps = round(self.config.warmup_ratio * self.config.max_steps)
         max_steps = self.config.max_steps
 
         def lr_lambda(step: int) -> float:

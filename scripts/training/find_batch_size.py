@@ -168,4 +168,17 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) == 1:
+        sys.argv.extend(
+            [
+                "--model-config",
+                "configs/models/gpt2-8k-2l.yaml",
+                "--training-config",
+                "configs/training/gpt2-8k.yaml",
+                "--data-config",
+                "configs/data/tinystories-8k.yaml",
+            ]
+        )
     main()

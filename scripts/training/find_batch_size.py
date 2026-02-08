@@ -13,6 +13,7 @@ from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
 from tiny_lm.model.architectures.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.training import TrainingConfig
+from tiny_lm.utils.precision import resolve_precision_name
 
 
 def parse_args() -> argparse.Namespace:
@@ -107,21 +108,12 @@ def run_one_step(
     return peak_mem
 
 
-def resolve_precision(training_config: TrainingConfig) -> str:
-    precision = training_config.precision
-    if precision in {"bf16-mixed", "bf16-true"}:
-        return "bf16"
-    if precision in {"16-mixed", 16}:
-        return "fp16"
-    return "fp32"
-
-
 def main() -> None:
     args = parse_args()
     model_config = GPT2Config.from_yaml(args.model_config)
     data_config = BinDataConfig.from_yaml(args.data_config)
     training_config = TrainingConfig.from_yaml(args.training_config)
-    precision = resolve_precision(training_config)
+    precision = resolve_precision_name(training_config.precision)
     accumulate = training_config.accumulate_grad_batches
 
     low = max(1, args.start_batch)

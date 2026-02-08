@@ -122,6 +122,7 @@ def main() -> None:
     data_config = BinDataConfig.from_yaml(args.data_config)
     training_config = TrainingConfig.from_yaml(args.training_config)
     precision = resolve_precision(training_config)
+    accumulate = training_config.accumulate_grad_batches
 
     low = max(1, args.start_batch)
     high = max(low, args.max_batch)
@@ -157,10 +158,13 @@ def main() -> None:
     )
     recommended = max(1, int(last_good * 0.9))
     print(f"recommended_batch_size={recommended}")
+    print(f"effective_batch_size={last_good * accumulate}")
+    print(f"recommended_effective_batch_size={recommended * accumulate}")
     tokens_per_step = (
         last_good * data_config.block_size if data_config.block_size > 0 else last_good
     )
     print(f"tokens_per_step={tokens_per_step}")
+    print(f"tokens_per_optimizer_step={tokens_per_step * accumulate}")
 
 
 if __name__ == "__main__":

@@ -1,7 +1,9 @@
 """Tests for Multi-Head Attention."""
 
+import pytest
 import torch
 from tiny_lm.model.attention import MultiHeadAttention
+from tiny_lm.model.position import RoPE
 
 
 class TestMultiHeadAttention:
@@ -154,4 +156,112 @@ class TestMultiHeadAttention:
         )
         assert torch.allclose(out2, out_batch[1:2], atol=1e-6), (
             "Second batch element should match individual processing"
+        )
+
+    def test_supports_grouped_query_attention(self):
+        """Test GQA mode with fewer KV heads than query heads."""
+        d_model = 128
+        n_heads = 8
+        n_kv_heads = 2
+        context_length = 128
+
+        attn = MultiHeadAttention(
+            d_model=d_model,
+            n_heads=n_heads,
+            n_kv_heads=n_kv_heads,
+            context_length=context_length,
+            dropout=0.0,
+        )
+        x = torch.randn(2, 16, d_model)
+        out = attn(x)
+
+        assert out.shape == x.shape, "GQA should preserve input shape"
+        assert attn.W_q.weight.shape == (n_heads * attn.head_dim, d_model)
+        assert attn.W_k.weight.shape == (n_kv_heads * attn.head_dim, d_model)
+        assert attn.W_v.weight.shape == (n_kv_heads * attn.head_dim, d_model)
+        assert attn.n_rep == n_heads // n_kv_heads
+
+    def test_supports_multi_query_attention(self):
+        """Test MQA mode with a single KV head."""
+        d_model = 128
+        n_heads = 8
+        context_length = 128
+
+        attn = MultiHeadAttention(
+            d_model=d_model,
+            n_heads=n_heads,
+            n_kv_heads=1,
+            context_length=context_length,
+            dropout=0.0,
+        )
+        x = torch.randn(2, 16, d_model)
+        out = attn(x)
+
+        assert out.shape == x.shape, "MQA should preserve input shape"
+        assert attn.W_k.weight.shape == (attn.head_dim, d_model)
+        assert attn.W_v.weight.shape == (attn.head_dim, d_model)
+
+    def test_invalid_kv_head_configuration_raises(self):
+        """Test that invalid n_kv_heads config is rejected."""
+        with pytest.raises(ValueError, match="divisible"):
+            MultiHeadAttention(
+                d_model=128,
+                n_heads=8,
+                n_kv_heads=3,
+                context_length=128,
+                dropout=0.0,
+            )
+
+    def test_rope_is_optional_and_preserves_shape(self):
+        """Test optional RoPE path runs and preserves output shape."""
+        d_model = 128
+        n_heads = 8
+        context_length = 128
+
+        attn = MultiHeadAttention(
+            d_model=d_model,
+            n_heads=n_heads,
+            context_length=context_length,
+            dropout=0.0,
+        )
+        rope = RoPE(dim=d_model // n_heads, max_seq_len=context_length)
+        x = torch.randn(2, 16, d_model)
+        out = attn(x, freqs_cis=rope(seq_len=16))
+
+        assert out.shape == x.shape, "RoPE-enabled attention should preserve shape"
+
+    def test_rope_matches_non_rope_for_single_token(self):
+        """Test RoPE and non-RoPE are equivalent at position 0 only."""
+        d_model = 128
+        n_heads = 8
+        context_length = 32
+
+        attn_no_rope = MultiHeadAttention(
+            d_model=d_model,
+            n_heads=n_heads,
+            context_length=context_length,
+            dropout=0.0,
+        )
+        attn_rope = MultiHeadAttention(
+            d_model=d_model,
+            n_heads=n_heads,
+            context_length=context_length,
+            dropout=0.0,
+        )
+        rope = RoPE(dim=d_model // n_heads, max_seq_len=context_length)
+
+        # Keep the same projection weights so differences only come from RoPE.
+        with torch.no_grad():
+            attn_rope.W_q.weight.copy_(attn_no_rope.W_q.weight)
+            attn_rope.W_k.weight.copy_(attn_no_rope.W_k.weight)
+            attn_rope.W_v.weight.copy_(attn_no_rope.W_v.weight)
+            attn_rope.out_proj.weight.copy_(attn_no_rope.out_proj.weight)
+            attn_rope.out_proj.bias.copy_(attn_no_rope.out_proj.bias)
+
+        x = torch.randn(2, 1, d_model)
+        out_no_rope = attn_no_rope(x)
+        out_rope = attn_rope(x, freqs_cis=rope(seq_len=1))
+
+        assert torch.allclose(out_no_rope, out_rope, atol=1e-6), (
+            "For seq_len=1, RoPE should be identity and match non-RoPE output"
         )

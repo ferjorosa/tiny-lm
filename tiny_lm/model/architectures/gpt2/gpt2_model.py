@@ -10,9 +10,10 @@ https://cdn.openai.com/better-language-models/language_models_are_unsupervised_m
 import torch
 import torch.nn as nn
 from tiny_lm.model.activation import GELU
-from tiny_lm.model.blocks import GPT2Block
 from tiny_lm.model.normalization import LayerNorm
 from tiny_lm.model.position import LearnedPositionalEmbedding
+
+from .gpt2_block import GPT2Block
 
 
 class GPT2(nn.Module):

@@ -1,8 +1,8 @@
 """Tests for GPT-2 transformer block."""
 
 import torch
-from tiny_lm.model.blocks import GPT2Block
 from tiny_lm.model.activation import GELU
+from tiny_lm.model.architectures.gpt2 import GPT2Block
 
 
 class TestGPT2Block:

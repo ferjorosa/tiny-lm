@@ -4,7 +4,7 @@ A learning-focused repo for pre-training small language models from scratch, end
 
 ## What is currently implemented
 
-- GPT-2 implementation from scratch
+- GPT-2 & Llama 3 implementations from scratch
 - [PyTorch Lightning](https://lightning.ai/docs/pytorch/stable/) for the training loop
 - [rustbpe](https://github.com/karpathy/rustbpe) + tiktoken tokenizer training and inference artifacts
 - Config-driven pipeline (model, data, tokenizer, training)

@@ -23,7 +23,8 @@ class GPT2Config:
 
     def __post_init__(self):
         """Validate configuration."""
-        assert self.d_model % self.n_heads == 0, "d_model must be divisible by n_heads"
+        if self.d_model % self.n_heads != 0:
+            raise ValueError("d_model must be divisible by n_heads")
         if self.d_ff is None:
             self.d_ff = 4 * self.d_model
 

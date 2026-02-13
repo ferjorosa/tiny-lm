@@ -4,6 +4,7 @@ import pickle
 import rustbpe
 import tiktoken
 from pathlib import Path
+from time import perf_counter
 from typing import Iterator
 
 # GPT-4 style split pattern that preserves newlines
@@ -50,9 +51,12 @@ def train_bpe_tokenizer_rust(
             f"vocab_size_no_special must be at least 256, got {vocab_size_no_special}"
         )
 
+    train_start = perf_counter()
     tokenizer.train_from_iterator(
         text_iterator, vocab_size_no_special, pattern=SPLIT_PATTERN
     )
+    train_time_seconds = perf_counter() - train_start
+    print(f"Training finished in {train_time_seconds:.2f}s")
 
     # Construct tiktoken encoding for inference
     print("Building tiktoken encoding...")
@@ -86,6 +90,7 @@ def train_bpe_tokenizer_rust(
         f.write(f"Vocab size: {enc.n_vocab}\n")
         f.write(f"Special tokens: {special_tokens_list}\n")
         f.write(f"Split pattern: {pattern}\n")
+        f.write(f"Train time (seconds): {train_time_seconds:.2f}\n")
     print(f"Saved metadata to {metadata_path}")
 
     return enc

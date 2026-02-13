@@ -35,5 +35,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
-        sys.argv.append("configs/dataset/tinystories.yaml")
+        sys.argv.append("configs/datasets/swallow-code.yaml")
     main()

@@ -23,7 +23,7 @@ def load_dataset_from_config(
 
     # Load dataset based on source
     if config.source == "huggingface":
-        dataset = load_dataset(config.name)
+        dataset = load_dataset(config.name, config.config_name)
     elif config.source == "local":
         dataset = load_dataset(config.path)  # type: ignore[arg-type]
     else:

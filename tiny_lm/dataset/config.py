@@ -14,6 +14,7 @@ class DatasetConfig:
     source: str
     text_field: str
     splits: dict[str, str]
+    config_name: str | None = None
     path: str | None = None
 
     def __post_init__(self):
@@ -25,6 +26,10 @@ class DatasetConfig:
         if self.source == "local" and not self.path:
             raise ValueError(
                 "Dataset config must contain 'path' when source is 'local'"
+            )
+        if self.source == "huggingface" and self.path:
+            raise ValueError(
+                "Dataset config cannot contain 'path' when source is 'huggingface'"
             )
 
     @classmethod

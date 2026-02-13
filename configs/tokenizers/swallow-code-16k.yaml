@@ -1,0 +1,17 @@
+name: "swallow-code-16k"
+type: "BPE"
+vocab_size: 16384
+
+dataset_config: "configs/datasets/swallow-code.yaml"
+val_split: 0.01
+
+special_tokens:
+  pad: "<pad>"
+  eos: "<eos>"
+  bos: "<bos>"
+  unk: "<unk>"
+
+output_dir: "tokenizers/swallow-code-16k"
+tokenized_output_dir: "data/swallow-code-16k-tokenized"
+num_proc: null  # null = auto (min(8, cpu_count))
+num_threads: 16

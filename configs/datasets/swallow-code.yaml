@@ -1,0 +1,6 @@
+name: "tokyotech-llm/swallow-code"
+source: "huggingface"
+text_field: "text"
+config_name: "swallow-code"
+splits:
+  train: "train"

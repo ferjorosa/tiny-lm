@@ -64,5 +64,5 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) == 1:
-        sys.argv.extend(["--config", "configs/tokenizers/tinystories-8k.yaml"])
+        sys.argv.extend(["--config", "configs/tokenizers/swallow-code-16k.yaml"])
     main()

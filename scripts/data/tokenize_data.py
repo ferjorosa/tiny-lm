@@ -63,15 +63,15 @@ def tokenize_split(
     eos_token_id: int,
     output_path: Path,
     output_filename: str,
-    num_proc: int | None = None,
+    num_threads: int | None = None,
     batch_size: int = 1_000,
 ) -> tuple[int, int, np.dtype, dict[str, dict[str, float]]]:
     """
     Tokenize a dataset split
     """
 
-    if num_proc is None:
-        num_proc = min(8, os.cpu_count() or 1)
+    if num_threads is None:
+        num_threads = min(8, os.cpu_count() or 1)
 
     def tokenize_batch(batch):
         texts = [t for t in batch[text_field] if t != ""]
@@ -91,7 +91,7 @@ def tokenize_split(
         tokenize_batch,
         batched=True,
         batch_size=batch_size,
-        num_proc=num_proc,
+        num_proc=num_threads,
         remove_columns=split.column_names,
         desc="Tokenizing",
     )
@@ -133,6 +133,7 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
 
     # Load tokenizer config
     tok_config = TokenizerConfig.from_yaml(tokenizer_config)
+    num_threads = tok_config.num_threads
 
     output_path = Path(tok_config.tokenized_output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -178,7 +179,7 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         eos_token_id,
         output_path,
         "train.bin",
-        num_proc=tok_config.num_proc,
+        num_threads=num_threads,
     )
 
     val_tokens_count, val_examples_count, val_dtype, val_stats = tokenize_split(
@@ -190,7 +191,7 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         eos_token_id,
         output_path,
         "val.bin",
-        num_proc=tok_config.num_proc,
+        num_threads=num_threads,
     )
 
     if train_dtype != val_dtype:

@@ -13,5 +13,4 @@ special_tokens:
 
 output_dir: "tokenizers/swallow-code-16k"
 tokenized_output_dir: "data/swallow-code-16k-tokenized"
-num_proc: null  # null = auto (min(8, cpu_count))
 num_threads: 16

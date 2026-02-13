@@ -1,5 +1,6 @@
 """Pre-tokenize dataset and save as binary files."""
 
+import argparse
 import json
 import os
 import pickle
@@ -223,17 +224,33 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
     print(f"Saved to {output_path}/")
 
 
-def main() -> None:
-    if len(sys.argv) < 2:
-        sys.exit(
-            "Usage: tokenize_data.py <tokenizer_config>\n"
-            "Example: tokenize_data.py configs/tokenizers/tinystories-8k.yaml"
-        )
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Pre-tokenize dataset and save as binary files."
+    )
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to tokenizer config YAML.",
+    )
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="Random seed for splitting (only used if no val split exists).",
+    )
+    return parser.parse_args()
 
-    tokenize_dataset(sys.argv[1])
+
+def main() -> None:
+    args = parse_args()
+    tokenize_dataset(args.config, seed=args.seed)
 
 
 if __name__ == "__main__":
+    import sys
+
     if len(sys.argv) == 1:
-        sys.argv.append("configs/tokenizers/tinystories-8k.yaml")
+        sys.argv.extend(["--config", "configs/tokenizers/tinystories-8k.yaml"])
     main()

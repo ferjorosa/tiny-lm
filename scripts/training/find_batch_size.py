@@ -20,12 +20,17 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Estimate max batch size that fits in GPU memory."
     )
-    parser.add_argument("--model-config", required=True, help="Path to model config.")
-    parser.add_argument("--data-config", required=True, help="Path to data config.")
+    parser.add_argument(
+        "--model-config",
+        help="Path to model config YAML.",
+    )
+    parser.add_argument(
+        "--data-config",
+        help="Path to data config YAML.",
+    )
     parser.add_argument(
         "--training-config",
-        required=True,
-        help="Path to training config (for precision settings).",
+        help="Path to training config YAML (for precision settings).",
     )
     parser.add_argument(
         "--start-batch",

@@ -14,7 +14,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/tokenizers/tinystories-8k.yaml",
+        required=True,
         help="Path to tokenizer config YAML.",
     )
     return parser.parse_args()
@@ -61,4 +61,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    import sys
+
+    if len(sys.argv) == 1:
+        sys.argv.extend(["--config", "configs/tokenizers/tinystories-8k.yaml"])
     main()

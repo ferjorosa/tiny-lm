@@ -12,5 +12,4 @@ special_tokens:
 
 output_dir: "tokenizers/tinystories-8k"
 tokenized_output_dir: "data/tinystories-8k-tokenized"
-num_proc: null  # null = auto (min(8, cpu_count))
 num_threads: 16

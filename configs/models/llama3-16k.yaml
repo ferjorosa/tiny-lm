@@ -1,7 +1,7 @@
-# Llama3-style tiny config with 8k vocab for TinyStories
-vocab_size: 8192
+# Llama3-style tiny config with 16k vocab
+vocab_size: 16384
 context_length: 1024
-d_model: 768
+d_model: 384
 n_layers: 12
 n_heads: 12
 n_kv_heads: 4

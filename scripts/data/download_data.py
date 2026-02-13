@@ -1,17 +1,25 @@
 """Download a dataset from HuggingFace with progress logs."""
 
-import sys
+import argparse
 from pathlib import Path
 
 from tiny_lm.dataset import LengthFilter, load_dataset_from_config
 
 
-def main() -> None:
-    if len(sys.argv) < 2:
-        print("Usage: python scripts/data/download_dataset.py <config_path>")
-        sys.exit(1)
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Download a dataset from config.")
+    parser.add_argument(
+        "--config",
+        type=str,
+        required=True,
+        help="Path to dataset config YAML.",
+    )
+    return parser.parse_args()
 
-    config_path = Path(sys.argv[1])
+
+def main() -> None:
+    args = parse_args()
+    config_path = Path(args.config)
 
     # Download and load dataset
     dataset, dataset_config = load_dataset_from_config(config_path)
@@ -34,6 +42,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    import sys
+
     if len(sys.argv) == 1:
-        sys.argv.append("configs/dataset/tinystories.yaml")
+        sys.argv.extend(["--config", "configs/datasets/swallow-code.yaml"])
     main()

@@ -9,6 +9,7 @@ https://cdn.openai.com/better-language-models/language_models_are_unsupervised_m
 
 import torch
 import torch.nn as nn
+
 from tiny_lm.model.activation import GELU
 from tiny_lm.model.normalization import LayerNorm
 from tiny_lm.model.position import LearnedPositionalEmbedding
@@ -34,6 +35,7 @@ class GPT2(nn.Module):
         resid_dropout: Dropout for residual connections
         ffn_dropout: Dropout in feed-forward networks
         qkv_bias: Whether to use bias in attention QKV projections
+        attn_backend: Attention backend ("manual" or "sdp")
     """
 
     def __init__(
@@ -49,11 +51,17 @@ class GPT2(nn.Module):
         resid_dropout: float = 0.1,
         ffn_dropout: float = 0.1,
         qkv_bias: bool = False,
+        attn_backend: str = "manual",
     ):
         super().__init__()
+        if attn_backend not in ("manual", "sdp"):
+            raise ValueError(
+                f"attn_backend must be 'manual' or 'sdp', got {attn_backend}"
+            )
         self.vocab_size = vocab_size
         self.d_model = d_model
         self.context_length = context_length
+        self.attn_backend = attn_backend
 
         # Token embeddings
         self.token_emb = nn.Embedding(vocab_size, d_model)
@@ -77,6 +85,7 @@ class GPT2(nn.Module):
                     resid_dropout=resid_dropout,
                     ffn_dropout=ffn_dropout,
                     qkv_bias=qkv_bias,
+                    attn_backend=attn_backend,
                 )
                 for _ in range(n_layers)
             ]

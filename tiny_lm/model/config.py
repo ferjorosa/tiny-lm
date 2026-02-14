@@ -20,6 +20,7 @@ class GPT2Config:
     emb_dropout: float = 0.1
     attn_dropout: float = 0.1
     resid_dropout: float = 0.1
+    attn_backend: str = "manual"  # "manual" or "sdp"
 
     def __post_init__(self):
         """Validate configuration."""
@@ -27,6 +28,10 @@ class GPT2Config:
             raise ValueError("d_model must be divisible by n_heads")
         if self.d_ff is None:
             self.d_ff = 4 * self.d_model
+        if self.attn_backend not in ("manual", "sdp"):
+            raise ValueError(
+                f"attn_backend must be 'manual' or 'sdp', got {self.attn_backend}"
+            )
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "GPT2Config":
@@ -64,6 +69,7 @@ class Llama3Config:
     ffn_dropout: float = 0.0
     qkv_bias: bool = False
     ffn_bias: bool = False
+    attn_backend: str = "manual"  # "manual" or "sdp"
 
     def __post_init__(self):
         """Validate configuration."""
@@ -73,6 +79,10 @@ class Llama3Config:
             raise ValueError("n_kv_heads must be positive")
         if self.n_heads % self.n_kv_heads != 0:
             raise ValueError("n_heads must be divisible by n_kv_heads")
+        if self.attn_backend not in ("manual", "sdp"):
+            raise ValueError(
+                f"attn_backend must be 'manual' or 'sdp', got {self.attn_backend}"
+            )
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "Llama3Config":

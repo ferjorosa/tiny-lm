@@ -11,9 +11,9 @@ pattern used in Mini-LLM style implementations.
 import torch
 import torch.nn as nn
 
-from tiny_lm.model.attention import MultiHeadAttention
 from tiny_lm.model.feedforward import SwiGLU
 from tiny_lm.model.normalization import RMSNorm
+from tiny_lm.model.utils import create_attention
 
 
 class Llama3Block(nn.Module):
@@ -32,6 +32,7 @@ class Llama3Block(nn.Module):
         ffn_dropout: Dropout inside SwiGLU gated representation
         qkv_bias: Whether to use bias in attention projections
         ffn_bias: Whether SwiGLU linear layers use bias
+        attn_backend: Attention backend ("manual" or "sdp")
     """
 
     def __init__(
@@ -48,16 +49,18 @@ class Llama3Block(nn.Module):
         ffn_dropout: float = 0.0,
         qkv_bias: bool = False,
         ffn_bias: bool = False,
+        attn_backend: str = "manual",
     ):
         super().__init__()
 
-        self.attn = MultiHeadAttention(
+        self.attn = create_attention(
             d_model=d_model,
             n_heads=n_heads,
             n_kv_heads=n_kv_heads,
             context_length=context_length,
             dropout=attn_dropout,
             qkv_bias=qkv_bias,
+            backend=attn_backend,
         )
         self.ffn = SwiGLU(
             d_model=d_model,

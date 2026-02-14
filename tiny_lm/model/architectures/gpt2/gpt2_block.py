@@ -12,9 +12,10 @@ https://cdn.openai.com/better-language-models/language_models_are_unsupervised_m
 
 import torch
 import torch.nn as nn
-from tiny_lm.model.attention import MultiHeadAttention
+
 from tiny_lm.model.feedforward import FeedForward
 from tiny_lm.model.normalization import LayerNorm
+from tiny_lm.model.utils import create_attention
 
 
 class GPT2Block(nn.Module):
@@ -33,7 +34,7 @@ class GPT2Block(nn.Module):
         attn_dropout: Dropout for attention weights
         resid_dropout: Dropout for residual connections
         ffn_dropout: Dropout in feed-forward network
-        qkv_bias: Whether to use bias in attention QKV projections
+        attn_backend: Attention backend ("manual" or "sdp")
     """
 
     def __init__(
@@ -47,16 +48,19 @@ class GPT2Block(nn.Module):
         resid_dropout: float = 0.1,
         ffn_dropout: float = 0.1,
         qkv_bias: bool = False,
+        attn_backend: str = "manual",
     ):
         super().__init__()
 
         # Multi-head attention
-        self.attn = MultiHeadAttention(
+        self.attn = create_attention(
             d_model=d_model,
             n_heads=n_heads,
+            n_kv_heads=None,
             context_length=context_length,
             dropout=attn_dropout,
             qkv_bias=qkv_bias,
+            backend=attn_backend,
         )
 
         # Feed-forward network

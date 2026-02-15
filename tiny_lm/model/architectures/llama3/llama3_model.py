@@ -36,15 +36,16 @@ class Llama3(nn.Module):
         ffn_dropout: Dropout inside SwiGLU gated representation
         qkv_bias: Whether to use bias in attention projections
         ffn_bias: Whether SwiGLU linear layers use bias
+        attn_backend: Attention backend ("manual" or "sdp")
     """
 
     def __init__(
         self,
         vocab_size: int,
-        d_model: int = 4096,
-        n_layers: int = 32,
-        n_heads: int = 32,
-        context_length: int = 8192,
+        d_model: int = 768,
+        n_layers: int = 12,
+        n_heads: int = 12,
+        context_length: int = 1024,
         n_kv_heads: int | None = None,
         ffn_hidden_dim: int | None = None,
         multiple_of: int = 256,
@@ -56,10 +57,16 @@ class Llama3(nn.Module):
         ffn_dropout: float = 0.0,
         qkv_bias: bool = False,
         ffn_bias: bool = False,
+        attn_backend: str = "manual",
     ):
         super().__init__()
         if d_model % n_heads != 0:
             raise ValueError("d_model must be divisible by n_heads")
+        if attn_backend not in ("manual", "sdp"):
+            raise ValueError(
+                f"attn_backend must be 'manual' or 'sdp', got {attn_backend}"
+            )
+        self.attn_backend = attn_backend
 
         self.vocab_size = vocab_size
         self.d_model = d_model
@@ -83,6 +90,7 @@ class Llama3(nn.Module):
                     ffn_dropout=ffn_dropout,
                     qkv_bias=qkv_bias,
                     ffn_bias=ffn_bias,
+                    attn_backend=attn_backend,
                 )
                 for _ in range(n_layers)
             ]

@@ -18,12 +18,15 @@ import subprocess
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pytorch_lightning as pl
+import yaml
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
+from tiny_lm.data.sharded import ShardedDataConfig, ShardedTokenDataModule
 from tiny_lm.model.architectures.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.training import (
@@ -34,6 +37,8 @@ from tiny_lm.training import (
     TrainingConfig,
 )
 from tiny_lm.tracking.trackio_logger import TrackioLogger
+
+DataConfig = BinDataConfig | ShardedDataConfig
 
 
 def parse_args() -> argparse.Namespace:
@@ -80,7 +85,7 @@ def get_git_state() -> dict[str, str | bool]:
 def build_trackio_config(
     model_config: GPT2Config,
     training_config: TrainingConfig,
-    data_config: BinDataConfig,
+    data_config: DataConfig,
     args: argparse.Namespace,
 ) -> dict[str, object]:
     return {
@@ -111,23 +116,48 @@ def copy_run_configs(run_dir: Path, args: argparse.Namespace) -> None:
     shutil.copy2(args.data_config, configs_dir / Path(args.data_config).name)
 
 
-def main() -> None:
-    args = parse_args()
+def _read_data_yaml(path: str | Path) -> dict[str, Any]:
+    with open(path) as f:
+        data = yaml.safe_load(f)
+    if not isinstance(data, dict):
+        raise ValueError("Data config YAML must contain a mapping at top level")
+    return data
 
-    model_config = GPT2Config.from_yaml(args.model_config)
-    training_config = TrainingConfig.from_yaml(args.training_config)
-    data_config = BinDataConfig.from_yaml(args.data_config)
 
-    if data_config.block_size > model_config.context_length:
-        raise ValueError(
-            "block_size cannot exceed model context_length: "
-            f"{data_config.block_size} > {model_config.context_length}"
+def load_data_config(path: str | Path) -> DataConfig:
+    data = _read_data_yaml(path)
+    is_sharded = data.get("format") == "sharded_bin_v1" or any(
+        key in data for key in ("data_root", "manifest_path", "train_split", "val_split")
+    )
+    if is_sharded:
+        return ShardedDataConfig(**data)
+    return BinDataConfig(**data)
+
+
+def build_data_module(data_config: DataConfig) -> pl.LightningDataModule:
+    if isinstance(data_config, ShardedDataConfig):
+        manifest = data_config.load_manifest()
+        manifest_splits = manifest.get("splits", {})
+        train_split_name = data_config.split_name("train")
+        val_split_name = data_config.split_name("val")
+        train_shards = manifest_splits.get(train_split_name)
+        val_shards = manifest_splits.get(val_split_name)
+        return ShardedTokenDataModule(
+            train_dir=data_config.split_dir("train"),
+            val_dir=data_config.split_dir("val"),
+            block_size=data_config.block_size,
+            stride=data_config.stride,
+            dtype=np.dtype(data_config.dtype),
+            eos_token_id=data_config.eos_token_id,
+            batch_size=data_config.batch_size,
+            num_workers=data_config.num_workers,
+            pin_memory=data_config.pin_memory,
+            drop_last=data_config.drop_last,
+            train_shards=train_shards,
+            val_shards=val_shards,
         )
 
-    model = build_model(model_config)
-    module = CausalLMModule(model=model, config=training_config)
-
-    data_module = BinTokenDataModule(
+    return BinTokenDataModule(
         train_path=data_config.train_path,
         val_path=data_config.val_path,
         block_size=data_config.block_size,
@@ -139,6 +169,25 @@ def main() -> None:
         pin_memory=data_config.pin_memory,
         drop_last=data_config.drop_last,
     )
+
+
+def main() -> None:
+    args = parse_args()
+
+    model_config = GPT2Config.from_yaml(args.model_config)
+    training_config = TrainingConfig.from_yaml(args.training_config)
+    data_config = load_data_config(args.data_config)
+
+    if data_config.block_size > model_config.context_length:
+        raise ValueError(
+            "block_size cannot exceed model context_length: "
+            f"{data_config.block_size} > {model_config.context_length}"
+        )
+
+    model = build_model(model_config)
+    module = CausalLMModule(model=model, config=training_config)
+
+    data_module = build_data_module(data_config)
 
     run_name = training_config.run_name or build_trackio_run_name(args)
     run_dir = Path("runs") / run_name

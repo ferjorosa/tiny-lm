@@ -5,11 +5,13 @@ import json
 import os
 import pickle
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
 from datasets import Dataset
 from datasets.utils.logging import enable_progress_bar
+from tqdm import tqdm
 
 from tiny_lm.dataset import load_dataset_from_config
 from tiny_lm.tokenizer.config import TokenizerConfig
@@ -103,7 +105,16 @@ def tokenize_split(
     token_count = 0
     example_count = 0
     length_stats = _init_length_stats()
-    with open(output_file, "wb") as f:
+    with (
+        open(output_file, "wb") as f,
+        tqdm(
+            total=None,
+            desc=f"Writing {output_filename}",
+            unit="tok",
+            unit_scale=True,
+            dynamic_ncols=True,
+        ) as pbar,
+    ):
         for ids, char_len, token_len in zip(
             tokenized["ids"],
             tokenized["char_lengths"],
@@ -115,6 +126,7 @@ def tokenize_split(
             token_count += arr.size
             example_count += 1
             _update_length_stats(length_stats, char_len, token_len)
+            pbar.update(arr.size)
 
     stats = _finalize_length_stats(length_stats, example_count)
     return token_count, example_count, dtype, stats
@@ -129,6 +141,7 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         seed: Random seed for splitting (only used if no val split exists)
     """
 
+    start_time = time.perf_counter()
     enable_progress_bar()
 
     # Load tokenizer config
@@ -212,6 +225,7 @@ def tokenize_dataset(tokenizer_config: str | Path, seed: int = 42) -> None:
         "train_length_stats": train_stats,
         "val_length_stats": val_stats,
         "used_existing_split": used_existing_split,
+        "tokenize_seconds": float(time.perf_counter() - start_time),
     }
 
     if not used_existing_split:

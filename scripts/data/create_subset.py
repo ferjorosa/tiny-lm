@@ -17,6 +17,9 @@ def create_subset(
     dtype: np.dtype = np.dtype(np.uint16),
 ) -> None:
     """Read bin files with memmap and write subset."""
+    # Create output directory if it doesn't exist
+    train_output.parent.mkdir(parents=True, exist_ok=True)
+
     # Read train subset
     train_data = np.memmap(train_input, dtype=dtype, mode="r")[:train_tokens]
     train_data.tofile(train_output)

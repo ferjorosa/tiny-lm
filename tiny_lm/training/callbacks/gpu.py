@@ -11,7 +11,11 @@ from pytorch_lightning.utilities import rank_zero_only
 
 
 class GpuStatsMonitor(pl.Callback):
-    """Log GPU memory usage and temperature."""
+    """
+    Log GPU memory usage and temperature.
+
+    Currently tuned for single-GPU: all stats are logged from rank 0 only.
+    """
 
     def __init__(self, log_every_n_steps: int = 1) -> None:
         if log_every_n_steps <= 0:

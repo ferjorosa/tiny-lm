@@ -134,7 +134,7 @@ def main() -> None:
         stride=data_config.stride,
         dtype=np.dtype(data_config.dtype),
         eos_token_id=data_config.eos_token_id,
-        batch_size=data_config.batch_size,
+        batch_size=training_config.batch_size,
         num_workers=data_config.num_workers,
         pin_memory=data_config.pin_memory,
         drop_last=data_config.drop_last,

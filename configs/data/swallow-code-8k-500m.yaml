@@ -1,0 +1,8 @@
+train_path: "data/swallow-code-8k-tokenized-500m/train.bin"
+val_path: "data/swallow-code-8k-tokenized-500m/val.bin"
+block_size: 1024
+stride: 1024
+dtype: "uint16"
+num_workers: 4
+pin_memory: true
+drop_last: true

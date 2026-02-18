@@ -18,6 +18,7 @@ min_lr: 6.0e-5
 # total batch size = batch_size * seq_len * accumulate_grad_batches * num_devices
 # example: 56 * 1024 * 4 * 1 =  229376 tokens per update
 # 450M tokens / 229376 tokens per update = 1962 steps
+batch_size: 56
 accumulate_grad_batches: 4
 max_steps: 1962
 val_every_n_steps: 50

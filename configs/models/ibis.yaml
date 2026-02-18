@@ -1,0 +1,18 @@
+# Llama3-style tiny config with 16k vocab
+vocab_size: 8192
+context_length: 1024
+d_model: 256
+n_layers: 16
+n_heads: 4
+n_kv_heads: 4
+ffn_hidden_dim: null
+multiple_of: 256
+rope_theta: 10000.0
+norm_eps: 1.0e-6
+emb_dropout: 0.0
+attn_dropout: 0.0
+resid_dropout: 0.0
+ffn_dropout: 0.0
+qkv_bias: false
+ffn_bias: false
+attn_backend: "sdp"

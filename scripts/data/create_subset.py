@@ -64,11 +64,11 @@ if __name__ == "__main__":
 
     if len(sys.argv) == 1:
         sys.argv.extend([
-            "--train-input", "data/swallow-code-16k-tokenized/train.bin",
-            "--val-input", "data/swallow-code-16k-tokenized/val.bin",
-            "--train-output", "data/swallow-code-16k-tokenized-1m/train.bin",
-            "--val-output", "data/swallow-code-16k-tokenized-1m/val.bin",
-            "--train-tokens", "1000000",
-            "--val-tokens", "10000",
+            "--train-input", "data/swallow-code-8k-tokenized/train.bin",
+            "--val-input", "data/swallow-code-8k-tokenized/val.bin",
+            "--train-output", "data/swallow-code-8k-tokenized-500m/train.bin",
+            "--val-output", "data/swallow-code-8k-tokenized-500m/val.bin",
+            "--train-tokens", "500000000",
+            "--val-tokens", "3000000",
         ])
     main()

@@ -92,5 +92,5 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) == 1:
-        sys.argv.extend(["--model-config", "configs/models/llama3-16k.yaml"])
+        sys.argv.extend(["--model-config", "configs/models/ibis.yaml"])
     main()

@@ -6,6 +6,6 @@
 
 * Nuestra implementacion de attention es purametne educativa, deberia tener un modulo de flash_attention mas "profesional", tomando como inspiracion a nanochat
 
+# Parallel disk writing for tokenizer
 
-# Tokenizer: 
-* Hacer un fork de rust-bpe que permita mostrar el progreso y steps
+La PR que he hecho para tokenizacion + wirting en shards no me gusta, pero quizas hay algo intermedio donde escribimos un unico bloque pero podemos hacer cosas en paralelo y que no tarde tanto?

@@ -4,14 +4,17 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+from pathlib import Path
 
 import numpy as np
 import torch
+import yaml
 from torch import nn
 
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
 from tiny_lm.model.architectures.gpt2 import GPT2
-from tiny_lm.model.config import GPT2Config
+from tiny_lm.model.architectures.llama3 import Llama3
+from tiny_lm.model.config import GPT2Config, Llama3Config
 from tiny_lm.training import TrainingConfig
 from tiny_lm.utils.precision import resolve_precision_name
 
@@ -47,7 +50,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def build_model(config: GPT2Config) -> GPT2:
+def build_gpt2_model(config: GPT2Config) -> GPT2:
     return GPT2(
         vocab_size=config.vocab_size,
         d_model=config.d_model,
@@ -62,14 +65,53 @@ def build_model(config: GPT2Config) -> GPT2:
     )
 
 
+def build_llama3_model(config: Llama3Config) -> Llama3:
+    return Llama3(
+        vocab_size=config.vocab_size,
+        d_model=config.d_model,
+        n_layers=config.n_layers,
+        n_heads=config.n_heads,
+        context_length=config.context_length,
+        n_kv_heads=config.n_kv_heads,
+        ffn_hidden_dim=config.ffn_hidden_dim,
+        multiple_of=config.multiple_of,
+        rope_theta=config.rope_theta,
+        norm_eps=config.norm_eps,
+        emb_dropout=config.emb_dropout,
+        attn_dropout=config.attn_dropout,
+        resid_dropout=config.resid_dropout,
+        ffn_dropout=config.ffn_dropout,
+        qkv_bias=config.qkv_bias,
+        ffn_bias=config.ffn_bias,
+        attn_backend=config.attn_backend,
+    )
+
+
+def detect_model_type(config_path: str | Path) -> str:
+    with open(config_path) as f:
+        config_dict = yaml.safe_load(f) or {}
+
+    model_type = config_dict.get("model_type")
+    if model_type in {"gpt2", "llama3"}:
+        return model_type
+    raise ValueError(
+        "model_type is required in model config and must be one of "
+        f"{{'gpt2', 'llama3'}}: {config_path}"
+    )
+
+
 def run_one_step(
-    model_config: GPT2Config,
+    model_config: GPT2Config | Llama3Config,
+    model_type: str,
     data_config: BinDataConfig,
     batch_size: int,
     precision: str,
 ) -> float:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = build_model(model_config).to(device)
+    if model_type == "llama3":
+        model = build_llama3_model(model_config).to(device)
+    else:
+        model = build_gpt2_model(model_config).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
     loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
 
@@ -115,7 +157,12 @@ def run_one_step(
 
 def main() -> None:
     args = parse_args()
-    model_config = GPT2Config.from_yaml(args.model_config)
+    model_type = detect_model_type(args.model_config)
+    if model_type == "llama3":
+        model_config = Llama3Config.from_yaml(args.model_config)
+    else:
+        model_config = GPT2Config.from_yaml(args.model_config)
+
     data_config = BinDataConfig.from_yaml(args.data_config)
     training_config = TrainingConfig.from_yaml(args.training_config)
     precision = resolve_precision_name(training_config.precision)
@@ -133,6 +180,7 @@ def main() -> None:
                 torch.cuda.reset_peak_memory_stats()
             peak_mem = run_one_step(
                 model_config,
+                model_type,
                 data_config,
                 batch,
                 precision=precision,
@@ -151,7 +199,8 @@ def main() -> None:
     device = "cuda" if torch.cuda.is_available() else "cpu"
     print(
         f"max_batch_size={last_good} "
-        f"peak_mem_mb={last_good_mem:.1f} device={device} precision={precision}"
+        f"peak_mem_mb={last_good_mem:.1f} device={device} precision={precision} "
+        f"model_type={model_type}"
     )
     recommended = max(1, int(last_good * 0.9))
     print(f"recommended_batch_size={recommended}")
@@ -171,11 +220,11 @@ if __name__ == "__main__":
         sys.argv.extend(
             [
                 "--model-config",
-                "configs/models/gpt2-8k-2l.yaml",
+                "configs/models/ibis.yaml",
                 "--training-config",
-                "configs/training/gpt2-8k.yaml",
+                "configs/training/swallow-code-8k-500m.yaml",
                 "--data-config",
-                "configs/data/tinystories-8k.yaml",
+                "configs/data/swallow-code-8k-500m.yaml",
             ]
         )
     main()

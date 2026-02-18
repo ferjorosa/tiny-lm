@@ -1,0 +1,26 @@
+# Ibis: ~18M param Llama3-style model inspired by PleIAs/Monad (56M, 64 layers).
+# We use 16 layers instead of 64 to explore how depth vs. width trade-offs affect
+# a model of this scale. Monad uses context_length=2048; we start at 1024 to
+# reduce training cost and memory, but 2048 is worth trying if budget allows.
+# Reference: https://huggingface.co/PleIAs/Monad
+model_type: llama3
+vocab_size: 8192
+context_length: 1024
+d_model: 256
+n_layers: 16
+n_heads: 4
+n_kv_heads: 4
+ffn_hidden_dim: null
+multiple_of: 256
+rope_theta: 10000.0
+norm_eps: 1.0e-5 # Same as Llama3 and thus Monad
+
+qkv_bias: false
+ffn_bias: false
+attn_backend: "sdp"
+
+# Dropout is not encouraged for small models trained on large datasets.
+emb_dropout: 0.0
+attn_dropout: 0.0
+resid_dropout: 0.0
+ffn_dropout: 0.0

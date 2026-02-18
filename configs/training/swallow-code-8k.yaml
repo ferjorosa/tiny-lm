@@ -1,0 +1,29 @@
+# Precision and loss masking
+precision: "bf16-mixed"
+ignore_index: -100
+
+# Optimizer and training stability
+weight_decay: 0.1
+betas: [0.9, 0.95]
+eps: 1.0e-8
+grad_clip_norm: 1.0
+
+# Learning-rate schedule
+learning_rate: 6.0e-4  # small models (~18M) tolerate and benefit from higher LRs; GPT-2 small (117M) used 6e-4
+scheduler: "cosine"
+warmup_ratio: 0.01
+min_lr: 6.0e-5  # 10% of peak LR; cosine should decay to ~10%
+
+# Tokens, steps, and batching
+# total batch size = batch_size * seq_len * accumulate_grad_batches * num_devices
+# example: 64 * 1024 * 4 * 1 =  262144 tokens per update
+# 25B tokens / 262144 tokens per update = 95350 steps
+batch_size: 64
+accumulate_grad_batches: 4
+max_steps: 95350
+val_every_n_steps: 500
+system_metrics_every_n_steps: 50
+
+# Checkpointing
+save_every_n_steps: 2000
+resume_from_checkpoint: null

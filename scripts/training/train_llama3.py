@@ -165,7 +165,7 @@ def main() -> None:
         GpuStatsMonitor(log_every_n_steps=training_config.system_metrics_every_n_steps),
     ]
     trackio_logger = TrackioLogger(
-        project=os.getenv("TRACKIO_PROJECT", "tiny-lm"),
+        project=os.getenv("TRACKIO_PROJECT", Path(args.training_config).stem),
         name=run_name,
         config=build_trackio_config(
             model_config=model_config,
@@ -204,11 +204,11 @@ if __name__ == "__main__":
         sys.argv.extend(
             [
                 "--model-config",
-                "configs/models/ibis.yaml",
+                "configs/models/ibis-16.yaml",
                 "--training-config",
-                "configs/training/swallow-code-8k-500m.yaml",
+                "configs/training/swallow-code-8k.yaml",
                 "--data-config",
-                "configs/data/swallow-code-8k-500m.yaml",
+                "configs/data/swallow-code-8k.yaml",
             ]
         )
     main()

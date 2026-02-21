@@ -10,9 +10,10 @@ https://cdn.openai.com/better-language-models/language_models_are_unsupervised_m
 import torch
 import torch.nn as nn
 
-from tiny_lm.model.activation import GELU
-from tiny_lm.model.normalization import LayerNorm
-from tiny_lm.model.position import LearnedPositionalEmbedding
+from tiny_lm.model.components.activation import GELU
+from tiny_lm.model.components.normalization import LayerNorm
+from tiny_lm.model.components.position import LearnedPositionalEmbedding
+from tiny_lm.model.config import GPT2Config
 
 from .gpt2_block import GPT2Block
 
@@ -103,6 +104,31 @@ class GPT2(nn.Module):
 
         # Initialize weights
         self.apply(self._init_weights)
+
+    @classmethod
+    def from_config(cls, config: GPT2Config) -> "GPT2":
+        """Create a GPT2 model from a GPT2Config.
+
+        Args:
+            config: GPT2Config instance with model hyperparameters
+
+        Returns:
+            GPT2 model instance
+        """
+        return cls(
+            vocab_size=config.vocab_size,
+            d_model=config.d_model,
+            n_layers=config.n_layers,
+            n_heads=config.n_heads,
+            d_ff=config.d_ff,
+            context_length=config.context_length,
+            emb_dropout=config.emb_dropout,
+            attn_dropout=config.attn_dropout,
+            resid_dropout=config.resid_dropout,
+            ffn_dropout=config.dropout,  # config uses 'dropout' for ffn_dropout
+            qkv_bias=False,
+            attn_backend=config.attn_backend,
+        )
 
     def _init_weights(self, module: nn.Module) -> None:
         """Initialize weights following GPT-2 paper.

@@ -1,7 +1,7 @@
 """Tests for LayerNorm."""
 
 import torch
-from tiny_lm.model.normalization import LayerNorm
+from tiny_lm.model.components.normalization import LayerNorm
 
 
 class TestLayerNorm:

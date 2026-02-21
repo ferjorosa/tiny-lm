@@ -2,7 +2,7 @@
 
 import torch
 import torch.nn.functional as F
-from tiny_lm.model.feedforward import SwiGLU
+from tiny_lm.model.components.feedforward import SwiGLU
 
 
 class TestSwiGLU:

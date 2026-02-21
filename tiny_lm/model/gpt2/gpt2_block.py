@@ -13,8 +13,8 @@ https://cdn.openai.com/better-language-models/language_models_are_unsupervised_m
 import torch
 import torch.nn as nn
 
-from tiny_lm.model.feedforward import FeedForward
-from tiny_lm.model.normalization import LayerNorm
+from tiny_lm.model.components.feedforward import FeedForward
+from tiny_lm.model.components.normalization import LayerNorm
 from tiny_lm.model.utils import create_attention
 
 

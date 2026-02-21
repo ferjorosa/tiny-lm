@@ -10,7 +10,7 @@ https://arxiv.org/abs/2112.05682
 import torch
 import torch.nn as nn
 
-from tiny_lm.model.position import apply_rotary_emb
+from tiny_lm.model.components.position import apply_rotary_emb
 
 
 class SDPAttention(nn.Module):

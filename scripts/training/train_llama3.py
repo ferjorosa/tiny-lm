@@ -24,7 +24,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
-from tiny_lm.model.architectures.llama3 import Llama3
+from tiny_lm.model.llama3 import Llama3
 from tiny_lm.model.config import Llama3Config
 from tiny_lm.training import (
     CausalLMModule,
@@ -37,7 +37,9 @@ from tiny_lm.tracking.trackio_logger import TrackioLogger
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Train a Llama 3-style causal language model.")
+    parser = argparse.ArgumentParser(
+        description="Train a Llama 3-style causal language model."
+    )
     parser.add_argument(
         "--model-config",
         help="Path to model config YAML.",
@@ -51,28 +53,6 @@ def parse_args() -> argparse.Namespace:
         help="Path to data config YAML.",
     )
     return parser.parse_args()
-
-
-def build_model(config: Llama3Config) -> Llama3:
-    return Llama3(
-        vocab_size=config.vocab_size,
-        d_model=config.d_model,
-        n_layers=config.n_layers,
-        n_heads=config.n_heads,
-        context_length=config.context_length,
-        n_kv_heads=config.n_kv_heads,
-        ffn_hidden_dim=config.ffn_hidden_dim,
-        multiple_of=config.multiple_of,
-        rope_theta=config.rope_theta,
-        norm_eps=config.norm_eps,
-        emb_dropout=config.emb_dropout,
-        attn_dropout=config.attn_dropout,
-        resid_dropout=config.resid_dropout,
-        ffn_dropout=config.ffn_dropout,
-        qkv_bias=config.qkv_bias,
-        ffn_bias=config.ffn_bias,
-        attn_backend=config.attn_backend,
-    )
 
 
 def get_git_state() -> dict[str, str | bool]:
@@ -131,7 +111,7 @@ def main() -> None:
             f"{data_config.block_size} > {model_config.context_length}"
         )
 
-    model = build_model(model_config)
+    model = Llama3.from_config(model_config)
     module = CausalLMModule(model=model, config=training_config)
 
     data_module = BinTokenDataModule(

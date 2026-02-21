@@ -11,7 +11,7 @@ import pickle
 import tiktoken
 import torch
 
-from tiny_lm.model.architectures.gpt2 import GPT2
+from tiny_lm.model.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.tokenizer.config import TokenizerConfig
 

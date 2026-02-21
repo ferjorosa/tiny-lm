@@ -13,7 +13,9 @@ def _read_metadata(path: Path) -> dict[str, Any]:
         return json.load(f)
 
 
-def _write_subset_bin(input_path: Path, output_path: Path, num_tokens: int, dtype: np.dtype) -> None:
+def _write_subset_bin(
+    input_path: Path, output_path: Path, num_tokens: int, dtype: np.dtype
+) -> None:
     """Read first `num_tokens` from input and write them to output."""
     file_size = input_path.stat().st_size
     available_tokens = file_size // dtype.itemsize
@@ -77,10 +79,30 @@ def main() -> None:
             "Input dir must contain train.bin, val.bin, metadata.json."
         )
     )
-    parser.add_argument("--input-dir", type=Path, required=True, help="Directory with train.bin, val.bin, metadata.json")
-    parser.add_argument("--output-dir", type=Path, required=True, help="Directory where subset files will be written")
-    parser.add_argument("--train-tokens", type=int, required=True, help="Number of tokens to keep in train.bin")
-    parser.add_argument("--val-tokens", type=int, required=True, help="Number of tokens to keep in val.bin")
+    parser.add_argument(
+        "--input-dir",
+        type=Path,
+        required=True,
+        help="Directory with train.bin, val.bin, metadata.json",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=Path,
+        required=True,
+        help="Directory where subset files will be written",
+    )
+    parser.add_argument(
+        "--train-tokens",
+        type=int,
+        required=True,
+        help="Number of tokens to keep in train.bin",
+    )
+    parser.add_argument(
+        "--val-tokens",
+        type=int,
+        required=True,
+        help="Number of tokens to keep in val.bin",
+    )
     args = parser.parse_args()
 
     create_subset(
@@ -95,10 +117,16 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) == 1:
-        sys.argv.extend([
-            "--input-dir", "data/swallow-code-8k-tokenized",
-            "--output-dir", "data/swallow-code-8k-tokenized-500m",
-            "--train-tokens", "500000000",
-            "--val-tokens", "3000000",
-        ])
+        sys.argv.extend(
+            [
+                "--input-dir",
+                "data/swallow-code-8k-tokenized",
+                "--output-dir",
+                "data/swallow-code-8k-tokenized-val",
+                "--train-tokens",
+                "5000000",
+                "--val-tokens",
+                "20000000",
+            ]
+        )
     main()

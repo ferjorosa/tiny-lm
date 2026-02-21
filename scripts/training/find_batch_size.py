@@ -12,8 +12,8 @@ import yaml
 from torch import nn
 
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
-from tiny_lm.model.architectures.gpt2 import GPT2
-from tiny_lm.model.architectures.llama3 import Llama3
+from tiny_lm.model.gpt2 import GPT2
+from tiny_lm.model.llama3 import Llama3
 from tiny_lm.model.config import GPT2Config, Llama3Config
 from tiny_lm.training import TrainingConfig
 from tiny_lm.utils.precision import resolve_precision_name
@@ -102,13 +102,12 @@ def detect_model_type(config_path: str | Path) -> str:
 
 def run_one_step(
     model_config: GPT2Config | Llama3Config,
-    model_type: str,
     data_config: BinDataConfig,
     batch_size: int,
     precision: str,
 ) -> float:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if model_type == "llama3":
+    if isinstance(model_config, Llama3Config):
         model = build_llama3_model(model_config).to(device)
     else:
         model = build_gpt2_model(model_config).to(device)
@@ -180,7 +179,6 @@ def main() -> None:
                 torch.cuda.reset_peak_memory_stats()
             peak_mem = run_one_step(
                 model_config,
-                model_type,
                 data_config,
                 batch,
                 precision=precision,

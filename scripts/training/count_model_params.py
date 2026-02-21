@@ -7,8 +7,8 @@ from pathlib import Path
 
 import yaml
 
-from tiny_lm.model.architectures.gpt2 import GPT2
-from tiny_lm.model.architectures.llama3 import Llama3
+from tiny_lm.model.gpt2 import GPT2
+from tiny_lm.model.llama3 import Llama3
 from tiny_lm.model.config import GPT2Config, Llama3Config
 
 

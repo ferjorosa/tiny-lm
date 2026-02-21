@@ -24,7 +24,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
-from tiny_lm.model.architectures.gpt2 import GPT2
+from tiny_lm.model.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.training import (
     CausalLMModule,
@@ -51,21 +51,6 @@ def parse_args() -> argparse.Namespace:
         help="Path to data config YAML.",
     )
     return parser.parse_args()
-
-
-def build_model(config: GPT2Config) -> GPT2:
-    return GPT2(
-        vocab_size=config.vocab_size,
-        d_model=config.d_model,
-        n_layers=config.n_layers,
-        n_heads=config.n_heads,
-        d_ff=config.d_ff,
-        context_length=config.context_length,
-        emb_dropout=config.emb_dropout,
-        attn_dropout=config.attn_dropout,
-        resid_dropout=config.resid_dropout,
-        ffn_dropout=config.dropout,
-    )
 
 
 def get_git_state() -> dict[str, str | bool]:
@@ -124,7 +109,7 @@ def main() -> None:
             f"{data_config.block_size} > {model_config.context_length}"
         )
 
-    model = build_model(model_config)
+    model = GPT2.from_config(model_config)
     module = CausalLMModule(model=model, config=training_config)
 
     data_module = BinTokenDataModule(

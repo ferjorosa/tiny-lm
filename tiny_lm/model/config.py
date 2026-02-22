@@ -12,6 +12,17 @@ def _load_yaml_dict(path: str | Path) -> dict[str, Any]:
         return yaml.safe_load(f) or {}
 
 
+def load_model_config(path: str | Path) -> "GPT2Config | Llama3Config":
+    """Load a model config from YAML, dispatching on the model_type field."""
+    data = _load_yaml_dict(path)
+    model_type = data.get("model_type")
+    if model_type == "gpt2":
+        return GPT2Config(**data)
+    if model_type == "llama3":
+        return Llama3Config(**data)
+    raise ValueError(f"Unknown model_type '{model_type}' in {path}")
+
+
 @dataclass
 class GPT2Config:
     """Configuration for GPT-2 model."""

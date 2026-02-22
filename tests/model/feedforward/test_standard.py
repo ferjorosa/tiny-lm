@@ -1,8 +1,8 @@
 """Tests for standard feed-forward network."""
 
 import torch
-from tiny_lm.model.feedforward import FeedForward
-from tiny_lm.model.activation import GELU
+from tiny_lm.model.components.feedforward import FeedForward
+from tiny_lm.model.components.activation import GELU
 
 
 class TestFeedForward:

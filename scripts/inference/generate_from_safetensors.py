@@ -12,7 +12,7 @@ import tiktoken
 import torch
 from safetensors.torch import load_file as load_safetensors
 
-from tiny_lm.model.architectures.gpt2 import GPT2
+from tiny_lm.model.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.tokenizer.config import TokenizerConfig
 

@@ -31,7 +31,7 @@ from dotenv import load_dotenv
 from huggingface_hub import HfApi
 import yaml
 
-from tiny_lm.model.architectures.gpt2 import GPT2
+from tiny_lm.model.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.utils.precision import precision_to_dtype
 
@@ -131,7 +131,7 @@ This is a tiny-lm model (not Transformers-compatible). Load it with tiny-lm:
 ```python
 import pickle
 import torch
-from tiny_lm.model.architectures.gpt2 import GPT2
+from tiny_lm.model.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 
 config = GPT2Config.from_yaml("model_config.yaml")

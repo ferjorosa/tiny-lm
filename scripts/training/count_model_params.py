@@ -7,8 +7,8 @@ from pathlib import Path
 
 import yaml
 
-from tiny_lm.model.architectures.gpt2 import GPT2
-from tiny_lm.model.architectures.llama3 import Llama3
+from tiny_lm.model.gpt2 import GPT2
+from tiny_lm.model.llama3 import Llama3
 from tiny_lm.model.config import GPT2Config, Llama3Config
 
 
@@ -63,10 +63,13 @@ def detect_model_type(config_path: str | Path) -> str:
     with open(config_path) as f:
         config_dict = yaml.safe_load(f) or {}
 
-    # Llama3 configs include grouped-query attention fields not used by GPT-2.
-    if "n_kv_heads" in config_dict or "rope_theta" in config_dict:
-        return "llama3"
-    return "gpt2"
+    model_type = config_dict.get("model_type")
+    if model_type in {"gpt2", "llama3"}:
+        return model_type
+    raise ValueError(
+        "model_type is required in model config and must be one of "
+        f"{{'gpt2', 'llama3'}}: {config_path}"
+    )
 
 
 def main() -> None:
@@ -92,5 +95,5 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) == 1:
-        sys.argv.extend(["--model-config", "configs/models/llama3-16k.yaml"])
+        sys.argv.extend(["--model-config", "configs/models/ibis.yaml"])
     main()

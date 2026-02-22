@@ -10,8 +10,9 @@ This model uses:
 import torch
 import torch.nn as nn
 
-from tiny_lm.model.normalization import RMSNorm
-from tiny_lm.model.position import RoPE
+from tiny_lm.model.components.normalization import RMSNorm
+from tiny_lm.model.components.position import RoPE
+from tiny_lm.model.config import Llama3Config
 
 from .llama3_block import Llama3Block
 
@@ -108,6 +109,36 @@ class Llama3(nn.Module):
         self.lm_head.weight = self.token_emb.weight
 
         self.apply(self._init_weights)
+
+    @classmethod
+    def from_config(cls, config: Llama3Config) -> "Llama3":
+        """Create a Llama3 model from a Llama3Config.
+
+        Args:
+            config: Llama3Config instance with model hyperparameters
+
+        Returns:
+            Llama3 model instance
+        """
+        return cls(
+            vocab_size=config.vocab_size,
+            d_model=config.d_model,
+            n_layers=config.n_layers,
+            n_heads=config.n_heads,
+            context_length=config.context_length,
+            n_kv_heads=config.n_kv_heads,
+            ffn_hidden_dim=config.ffn_hidden_dim,
+            multiple_of=config.multiple_of,
+            rope_theta=config.rope_theta,
+            norm_eps=config.norm_eps,
+            emb_dropout=config.emb_dropout,
+            attn_dropout=config.attn_dropout,
+            resid_dropout=config.resid_dropout,
+            ffn_dropout=config.ffn_dropout,
+            qkv_bias=config.qkv_bias,
+            ffn_bias=config.ffn_bias,
+            attn_backend=config.attn_backend,
+        )
 
     def _init_weights(self, module: nn.Module) -> None:
         """Initialize linear/embedding weights with GPT-style normal init."""

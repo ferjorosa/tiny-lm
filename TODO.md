@@ -9,3 +9,9 @@
 
 # Tokenizer: 
 * Hacer un fork de rust-bpe que permita mostrar el progreso y steps
+* Evaluar pipeline streaming sin cache tokenizada de HF (workers -> cola en memoria acotada -> writer directo a shards .bin + manifest)
+
+# swallow-code
+Usar memmap para quedarnos solo con X tokens de training e Y tokens de validacion.
+
+como sabemos el tipo podemos iterar por el archivo y pista

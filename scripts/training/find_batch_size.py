@@ -4,16 +4,22 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 import torch
+import yaml
 from torch import nn
 
 from tiny_lm.data.bin import BinDataConfig, BinTokenDataModule
+from tiny_lm.data.sharded import ShardedDataConfig, ShardedTokenDataModule
 from tiny_lm.model.architectures.gpt2 import GPT2
 from tiny_lm.model.config import GPT2Config
 from tiny_lm.training import TrainingConfig
 from tiny_lm.utils.precision import resolve_precision_name
+
+DataConfig = BinDataConfig | ShardedDataConfig
 
 
 def parse_args() -> argparse.Namespace:
@@ -64,7 +70,7 @@ def build_model(config: GPT2Config) -> GPT2:
 
 def run_one_step(
     model_config: GPT2Config,
-    data_config: BinDataConfig,
+    data_config: DataConfig,
     batch_size: int,
     precision: str,
 ) -> float:
@@ -73,18 +79,7 @@ def run_one_step(
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-3)
     loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
 
-    data_module = BinTokenDataModule(
-        train_path=data_config.train_path,
-        val_path=data_config.val_path,
-        block_size=data_config.block_size,
-        stride=data_config.stride,
-        dtype=np.dtype(data_config.dtype),
-        eos_token_id=data_config.eos_token_id,
-        batch_size=batch_size,
-        num_workers=data_config.num_workers,
-        pin_memory=data_config.pin_memory,
-        drop_last=data_config.drop_last,
-    )
+    data_module = build_data_module(data_config, batch_size=batch_size)
     data_module.setup("fit")
     batch = next(iter(data_module.train_dataloader()))
     input_ids, targets = (t.to(device) for t in batch)
@@ -113,10 +108,66 @@ def run_one_step(
     return peak_mem
 
 
+def _read_data_yaml(path: str | Path) -> dict[str, Any]:
+    with open(path) as f:
+        data = yaml.safe_load(f)
+    if not isinstance(data, dict):
+        raise ValueError("Data config YAML must contain a mapping at top level")
+    return data
+
+
+def load_data_config(path: str | Path) -> DataConfig:
+    data = _read_data_yaml(path)
+    is_sharded = data.get("format") == "sharded_bin_v1" or any(
+        key in data for key in ("data_root", "manifest_path", "train_split", "val_split")
+    )
+    if is_sharded:
+        return ShardedDataConfig(**data)
+    return BinDataConfig(**data)
+
+
+def build_data_module(
+    data_config: DataConfig, batch_size: int
+) -> BinTokenDataModule | ShardedTokenDataModule:
+    if isinstance(data_config, ShardedDataConfig):
+        manifest = data_config.load_manifest()
+        manifest_splits = manifest.get("splits", {})
+        train_split_name = data_config.split_name("train")
+        val_split_name = data_config.split_name("val")
+        train_shards = manifest_splits.get(train_split_name)
+        val_shards = manifest_splits.get(val_split_name)
+        return ShardedTokenDataModule(
+            train_dir=data_config.split_dir("train"),
+            val_dir=data_config.split_dir("val"),
+            block_size=data_config.block_size,
+            stride=data_config.stride,
+            dtype=np.dtype(data_config.dtype),
+            eos_token_id=data_config.eos_token_id,
+            batch_size=batch_size,
+            num_workers=data_config.num_workers,
+            pin_memory=data_config.pin_memory,
+            drop_last=data_config.drop_last,
+            train_shards=train_shards,
+            val_shards=val_shards,
+        )
+    return BinTokenDataModule(
+        train_path=data_config.train_path,
+        val_path=data_config.val_path,
+        block_size=data_config.block_size,
+        stride=data_config.stride,
+        dtype=np.dtype(data_config.dtype),
+        eos_token_id=data_config.eos_token_id,
+        batch_size=batch_size,
+        num_workers=data_config.num_workers,
+        pin_memory=data_config.pin_memory,
+        drop_last=data_config.drop_last,
+    )
+
+
 def main() -> None:
     args = parse_args()
     model_config = GPT2Config.from_yaml(args.model_config)
-    data_config = BinDataConfig.from_yaml(args.data_config)
+    data_config = load_data_config(args.data_config)
     training_config = TrainingConfig.from_yaml(args.training_config)
     precision = resolve_precision_name(training_config.precision)
     accumulate = training_config.accumulate_grad_batches

@@ -1,0 +1,15 @@
+format: "sharded_bin_v1"
+data_root: "data/swallow-code-16k-sharded-v1-tokenized"
+manifest_path: null
+train_split: "train"
+val_split: "val"
+train_dir: null
+val_dir: null
+block_size: 1024
+stride: 1024
+dtype: "uint16"
+eos_token_id: 2  # update from data/swallow-code-16k-sharded-v1-tokenized/metadata.json
+batch_size: 32
+num_workers: 4
+pin_memory: true
+drop_last: true

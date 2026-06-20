@@ -11,8 +11,8 @@ pattern used in Mini-LLM style implementations.
 import torch
 import torch.nn as nn
 
-from tiny_lm.model.feedforward import SwiGLU
-from tiny_lm.model.normalization import RMSNorm
+from tiny_lm.model.components.feedforward import SwiGLU
+from tiny_lm.model.components.normalization import RMSNorm
 from tiny_lm.model.utils import create_attention
 
 

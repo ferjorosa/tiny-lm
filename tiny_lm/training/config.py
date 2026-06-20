@@ -37,6 +37,7 @@ class TrainingConfig:
     save_every_n_steps: int
     val_every_n_steps: int
     system_metrics_every_n_steps: int
+    batch_size: int
     run_name: str | None = None
     resume_from_checkpoint: str | None = None
 
@@ -59,6 +60,8 @@ class TrainingConfig:
             raise ValueError("val_every_n_steps must be positive")
         if self.system_metrics_every_n_steps <= 0:
             raise ValueError("system_metrics_every_n_steps must be positive")
+        if self.batch_size <= 0:
+            raise ValueError("batch_size must be positive")
 
     @classmethod
     def from_yaml(cls, path: str | Path) -> "TrainingConfig":

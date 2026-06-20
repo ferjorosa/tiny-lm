@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from tiny_lm.model.architectures import Llama3
+from tiny_lm.model.llama3 import Llama3
 
 
 class TestLlama3:

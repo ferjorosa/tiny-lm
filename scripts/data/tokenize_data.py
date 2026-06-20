@@ -253,5 +253,5 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) == 1:
-        sys.argv.extend(["--config", "configs/tokenizers/swallow-code-16k.yaml"])
+        sys.argv.extend(["--config", "configs/tokenizers/swallow-code-8k.yaml"])
     main()

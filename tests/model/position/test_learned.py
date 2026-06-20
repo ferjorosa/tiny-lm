@@ -2,7 +2,7 @@
 
 import torch
 import pytest
-from tiny_lm.model.position import LearnedPositionalEmbedding
+from tiny_lm.model.components.position import LearnedPositionalEmbedding
 
 
 class TestLearnedPositionalEmbedding:

@@ -2,14 +2,32 @@
 
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Any, Literal
 
 import yaml
+
+
+def _load_yaml_dict(path: str | Path) -> dict[str, Any]:
+    with open(path) as f:
+        return yaml.safe_load(f) or {}
+
+
+def load_model_config(path: str | Path) -> "GPT2Config | Llama3Config":
+    """Load a model config from YAML, dispatching on the model_type field."""
+    data = _load_yaml_dict(path)
+    model_type = data.get("model_type")
+    if model_type == "gpt2":
+        return GPT2Config(**data)
+    if model_type == "llama3":
+        return Llama3Config(**data)
+    raise ValueError(f"Unknown model_type '{model_type}' in {path}")
 
 
 @dataclass
 class GPT2Config:
     """Configuration for GPT-2 model."""
 
+    model_type: Literal["gpt2"]
     vocab_size: int = 8000
     context_length: int = 1024
     d_model: int = 768
@@ -24,6 +42,8 @@ class GPT2Config:
 
     def __post_init__(self):
         """Validate configuration."""
+        if self.model_type != "gpt2":
+            raise ValueError(f"model_type must be 'gpt2', got {self.model_type}")
         if self.d_model % self.n_heads != 0:
             raise ValueError("d_model must be divisible by n_heads")
         if self.d_ff is None:
@@ -44,15 +64,14 @@ class GPT2Config:
         Returns:
             GPT2Config instance
         """
-        with open(path) as f:
-            config = yaml.safe_load(f)
-        return cls(**config)
+        return cls(**_load_yaml_dict(path))
 
 
 @dataclass
 class Llama3Config:
     """Configuration for Llama 3-style decoder model."""
 
+    model_type: Literal["llama3"]
     vocab_size: int = 8192
     context_length: int = 1024
     d_model: int = 768
@@ -73,6 +92,8 @@ class Llama3Config:
 
     def __post_init__(self):
         """Validate configuration."""
+        if self.model_type != "llama3":
+            raise ValueError(f"model_type must be 'llama3', got {self.model_type}")
         if self.d_model % self.n_heads != 0:
             raise ValueError("d_model must be divisible by n_heads")
         if self.n_kv_heads <= 0:
@@ -87,6 +108,4 @@ class Llama3Config:
     @classmethod
     def from_yaml(cls, path: str | Path) -> "Llama3Config":
         """Load config from YAML file."""
-        with open(path) as f:
-            config = yaml.safe_load(f)
-        return cls(**config)
+        return cls(**_load_yaml_dict(path))

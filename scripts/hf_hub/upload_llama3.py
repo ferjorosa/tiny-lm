@@ -1,4 +1,4 @@
-"""Export and upload a tiny-lm checkpoint to a public Hugging Face Hub repo.
+"""Export and upload a tiny-lm LLaMA 3 checkpoint to a public Hugging Face Hub repo.
 
 This script exports the model weights as SafeTensors, copies the model and
 tokenizer configs, and uploads everything to a public Hugging Face Hub repo.
@@ -31,17 +31,17 @@ from dotenv import load_dotenv
 from huggingface_hub import HfApi
 import yaml
 
-from tiny_lm.model.gpt2 import GPT2
-from tiny_lm.model.config import GPT2Config
+from tiny_lm.model.llama3 import Llama3
+from tiny_lm.model.config import Llama3Config
 from tiny_lm.utils.precision import precision_to_dtype
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Upload tiny-lm model to HF Hub.")
+    parser = argparse.ArgumentParser(description="Upload tiny-lm LLaMA 3 model to HF Hub.")
     parser.add_argument(
         "--repo-id",
         required=True,
-        help="Target repo id, e.g. username/tiny-lm-tinystories-8k-2l",
+        help="Target repo id, e.g. username/tiny-lm-swallow-code-8k-ibis-16",
     )
     parser.add_argument(
         "--checkpoint",
@@ -88,33 +88,65 @@ def load_checkpoint_state(checkpoint_path: str, device: str) -> dict[str, torch.
     return state_dict
 
 
-def build_readme(config: GPT2Config) -> str:
+def build_readme(config: Llama3Config) -> str:
     return f"""---
-language: en
+language:
+  - en
+  - ja
 tags:
-  - gpt2
-  - tinystories
+  - llama3
+  - swallow-code
   - tiny-lm
+  - code
 datasets:
-  - roneneldan/TinyStories
+  - tokyotech-llm/swallow-code
 ---
 
-# TinyStories GPT-2 (2L, 8k vocab)
+# Swallow Code Ibis-16 (LLaMA 3, 16 layers, 8k vocab)
 
 This model was trained with the
 [tiny-lm](https://github.com/ferjorosa/tiny-lm) repository on the
-[TinyStories dataset](https://huggingface.co/datasets/roneneldan/TinyStories)
-(see paper: https://arxiv.org/abs/2305.07759).
+[SwallowCode dataset](https://huggingface.co/datasets/tokyotech-llm/swallow-code).
+
+The goal is educational: a compact pretraining run for studying tokenization,
+data pipelines, and transformer training end to end.
+
+## Data
+
+The tokenizer is a custom 8k-token BPE trained on SwallowCode with Karpathy's
+[`rustbpe`](https://github.com/karpathy/rustbpe) approach, then exported as a
+`tiktoken` encoding for inference.
+
+The dataset was split into 99% train and 1% validation before tokenization.
+The resulting tokenized files contain 25.95B train tokens and 262M validation
+tokens. Training used 1,024-token contiguous windows over the token stream.
+
+## Training
+
+The model was trained with PyTorch Lightning using bf16 mixed precision.
+
+- Context window: 1,024 tokens
+- Batch size: 64 sequences
+- Gradient accumulation: 4
+- Effective batch size: 262,144 tokens per optimizer step
+- Training budget: about 25B tokens over 95,350 optimizer steps
+- Optimizer: AdamW with cosine LR decay and 1% warmup
+- Peak LR: 6e-4
+- Weight decay: 0.1
 
 ## Architecture
 
-- GPT-2 style decoder-only transformer
+- LLaMA 3 style decoder-only transformer
+- Parameters: 18,886,912 total; 16,789,760 non-embedding
 - Layers: {config.n_layers}
 - Vocab size: {config.vocab_size}
 - Context length: {config.context_length}
 - d_model: {config.d_model}
 - n_heads: {config.n_heads}
-- d_ff: {config.d_ff}
+- n_kv_heads: {config.n_kv_heads}
+- ffn_hidden_dim: {config.ffn_hidden_dim or (4 * config.d_model)}
+- RoPE theta: {config.rope_theta}
+- Norm epsilon: {config.norm_eps}
 
 ## Files
 
@@ -131,21 +163,28 @@ This is a tiny-lm model (not Transformers-compatible). Load it with tiny-lm:
 ```python
 import pickle
 import torch
-from tiny_lm.model.gpt2 import GPT2
-from tiny_lm.model.config import GPT2Config
+from tiny_lm.model.llama3 import Llama3
+from tiny_lm.model.config import Llama3Config
 
-config = GPT2Config.from_yaml("model_config.yaml")
-model = GPT2(
+config = Llama3Config.from_yaml("model_config.yaml")
+model = Llama3(
     vocab_size=config.vocab_size,
     d_model=config.d_model,
     n_layers=config.n_layers,
     n_heads=config.n_heads,
-    d_ff=config.d_ff,
     context_length=config.context_length,
+    n_kv_heads=config.n_kv_heads,
+    ffn_hidden_dim=config.ffn_hidden_dim,
+    multiple_of=config.multiple_of,
+    rope_theta=config.rope_theta,
+    norm_eps=config.norm_eps,
     emb_dropout=0.0,
     attn_dropout=0.0,
     resid_dropout=0.0,
     ffn_dropout=0.0,
+    qkv_bias=config.qkv_bias,
+    ffn_bias=config.ffn_bias,
+    attn_backend=config.attn_backend,
 )
 from safetensors.torch import load_file as load_safetensors
 
@@ -181,18 +220,25 @@ def main(args: argparse.Namespace) -> None:
     tokenizer_path = Path(args.tokenizer)
     tokenizer_config_path = Path(args.tokenizer_config)
 
-    config = GPT2Config.from_yaml(model_config_path)
-    model = GPT2(
+    config = Llama3Config.from_yaml(model_config_path)
+    model = Llama3(
         vocab_size=config.vocab_size,
         d_model=config.d_model,
         n_layers=config.n_layers,
         n_heads=config.n_heads,
-        d_ff=config.d_ff,
         context_length=config.context_length,
+        n_kv_heads=config.n_kv_heads,
+        ffn_hidden_dim=config.ffn_hidden_dim,
+        multiple_of=config.multiple_of,
+        rope_theta=config.rope_theta,
+        norm_eps=config.norm_eps,
         emb_dropout=0.0,
         attn_dropout=0.0,
         resid_dropout=0.0,
         ffn_dropout=0.0,
+        qkv_bias=config.qkv_bias,
+        ffn_bias=config.ffn_bias,
+        attn_backend=config.attn_backend,
     )
     state_dict = load_checkpoint_state(str(checkpoint_path), device)
     model.load_state_dict(state_dict, strict=True)
@@ -227,7 +273,7 @@ def main(args: argparse.Namespace) -> None:
         repo_id=args.repo_id,
         folder_path=str(export_dir),
         token=token,
-        commit_message="Upload tiny-lm TinyStories model",
+        commit_message="Upload tiny-lm LLaMA 3 Swallow Code model",
     )
 
     print(f"Uploaded to https://huggingface.co/{args.repo_id}")
@@ -240,17 +286,17 @@ if __name__ == "__main__":
         sys.argv.extend(
             [
                 "--repo-id",
-                "ferjorosa/tiny-lm-tinystories-8k-gpt2-2l",
+                "ferjorosa/tiny-lm-swallow-code-8k-ibis-16",
                 "--checkpoint",
-                "runs/gpt2-8k-2l-tinystories-8k-20260208-103335/checkpoints/last.ckpt",
+                "runs/ibis-16-swallow-code-8k-20260218-174533/checkpoints/last.ckpt",
                 "--model-config",
-                "runs/gpt2-8k-2l-tinystories-8k-20260208-103335/configs/gpt2-8k-2l.yaml",
+                "runs/ibis-16-swallow-code-8k-20260218-174533/configs/ibis-16.yaml",
                 "--training-config",
-                "runs/gpt2-8k-2l-tinystories-8k-20260208-103335/configs/gpt2-8k.yaml",
+                "configs/training/swallow-code-8k.yaml",
                 "--tokenizer",
-                "tokenizers/tinystories-8k/tokenizer.pkl",
+                "tokenizers/swallow-code-8k/tokenizer.pkl",
                 "--tokenizer-config",
-                "configs/tokenizers/tinystories-8k.yaml",
+                "configs/tokenizers/swallow-code-8k.yaml",
             ]
         )
     parsed_args = parse_args()

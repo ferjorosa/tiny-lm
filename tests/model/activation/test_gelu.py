@@ -1,7 +1,7 @@
 """Tests for GELU activation function."""
 
 import torch
-from tiny_lm.model.activation import GELU
+from tiny_lm.model.components.activation import GELU
 
 
 class TestGELU:

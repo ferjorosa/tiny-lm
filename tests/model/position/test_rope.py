@@ -3,7 +3,7 @@
 import pytest
 import torch
 
-from tiny_lm.model.position import RoPE, apply_rotary_emb
+from tiny_lm.model.components.position import RoPE, apply_rotary_emb
 
 
 class TestRoPE:

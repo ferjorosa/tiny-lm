@@ -2,7 +2,7 @@
 
 import pytest
 import torch
-from tiny_lm.model.normalization import RMSNorm
+from tiny_lm.model.components.normalization import RMSNorm
 
 
 class TestRMSNorm:

@@ -11,6 +11,21 @@ from torch import nn
 from tiny_lm.training.config import TrainingConfig
 
 
+def _cosine_with_warmup(
+    step: int,
+    warmup_steps: int,
+    max_steps: int,
+    min_lr_ratio: float,
+) -> float:
+    if warmup_steps > 0 and step < warmup_steps:
+        return step / warmup_steps
+    if max_steps <= warmup_steps:
+        return min_lr_ratio
+    progress = (step - warmup_steps) / (max_steps - warmup_steps)
+    cosine = 0.5 * (1.0 + math.cos(math.pi * min(1.0, progress)))
+    return min_lr_ratio + (1.0 - min_lr_ratio) * cosine
+
+
 class CausalLMModule(pl.LightningModule):
     """LightningModule for causal language modeling.
 
@@ -92,16 +107,12 @@ class CausalLMModule(pl.LightningModule):
         warmup_steps = round(self.config.warmup_ratio * self.config.max_steps)
         max_steps = self.config.max_steps
 
-        def lr_lambda(step: int) -> float:
-            if warmup_steps > 0 and step < warmup_steps:
-                return step / warmup_steps
-            if max_steps <= warmup_steps:
-                return min_lr_ratio
-            progress = (step - warmup_steps) / (max_steps - warmup_steps)
-            cosine = 0.5 * (1.0 + math.cos(math.pi * min(1.0, progress)))
-            return min_lr_ratio + (1.0 - min_lr_ratio) * cosine
-
-        scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+        scheduler = torch.optim.lr_scheduler.LambdaLR(
+            optimizer,
+            lambda step: _cosine_with_warmup(
+                step, warmup_steps, max_steps, min_lr_ratio
+            ),
+        )
         return {
             "optimizer": optimizer,
             "lr_scheduler": {

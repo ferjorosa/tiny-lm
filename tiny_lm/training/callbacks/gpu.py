@@ -11,18 +11,25 @@ from pytorch_lightning.utilities import rank_zero_only
 
 
 class GpuStatsMonitor(pl.Callback):
-    """Log GPU memory usage and temperature."""
+    """
+    Log GPU memory usage and temperature.
+
+    Currently tuned for single-GPU: all stats are logged from rank 0 only.
+    """
 
     def __init__(self, log_every_n_steps: int = 1) -> None:
         if log_every_n_steps <= 0:
             raise ValueError("log_every_n_steps must be positive")
         self.log_every_n_steps = log_every_n_steps
         self._nvidia_smi = shutil.which("nvidia-smi")
+        self._last_logged_step = -1
 
     @rank_zero_only
     def on_train_batch_end(self, trainer, pl_module, outputs, batch, batch_idx) -> None:
-        if (trainer.global_step + 1) % self.log_every_n_steps != 0:
+        step = trainer.global_step
+        if step % self.log_every_n_steps != 0 or step == self._last_logged_step:
             return
+        self._last_logged_step = step
 
         if torch.cuda.is_available() and pl_module.device.type == "cuda":
             device = pl_module.device

@@ -2,7 +2,7 @@
 
 import torch.nn as nn
 
-from tiny_lm.model.attention import MultiHeadAttention, SDPAttention
+from tiny_lm.model.components.attention import MultiHeadAttention, SDPAttention
 
 
 def create_attention(

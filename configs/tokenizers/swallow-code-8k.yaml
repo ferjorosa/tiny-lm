@@ -1,0 +1,16 @@
+name: "swallow-code-8k"
+type: "BPE"
+vocab_size: 8192
+
+dataset_config: "configs/datasets/swallow-code.yaml"
+val_split: 0.01
+
+special_tokens:
+  pad: "<pad>"
+  eos: "<eos>"
+  bos: "<bos>"
+  unk: "<unk>"
+
+output_dir: "tokenizers/swallow-code-8k"
+tokenized_output_dir: "data/swallow-code-8k-tokenized"
+num_threads: 12

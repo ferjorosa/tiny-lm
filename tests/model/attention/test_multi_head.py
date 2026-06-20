@@ -2,8 +2,8 @@
 
 import pytest
 import torch
-from tiny_lm.model.attention import MultiHeadAttention
-from tiny_lm.model.position import RoPE
+from tiny_lm.model.components.attention import MultiHeadAttention
+from tiny_lm.model.components.position import RoPE
 
 
 class TestMultiHeadAttention:

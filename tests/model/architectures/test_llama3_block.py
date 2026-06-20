@@ -2,8 +2,8 @@
 
 import torch
 
-from tiny_lm.model.architectures import Llama3Block
-from tiny_lm.model.position import RoPE
+from tiny_lm.model.llama3 import Llama3Block
+from tiny_lm.model.components.position import RoPE
 
 
 class TestLlama3Block:

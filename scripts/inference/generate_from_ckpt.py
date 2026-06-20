@@ -1,4 +1,7 @@
-"""Minimal GPT-2 inference script from a Lightning checkpoint."""
+"""Minimal inference script from a Lightning checkpoint.
+
+Supports both GPT-2 and LLaMA 3 model architectures.
+"""
 
 from __future__ import annotations
 
@@ -10,14 +13,16 @@ import pickle
 
 import tiktoken
 import torch
+import yaml
 
 from tiny_lm.model.gpt2 import GPT2
-from tiny_lm.model.config import GPT2Config
+from tiny_lm.model.llama3 import Llama3
+from tiny_lm.model.config import GPT2Config, Llama3Config
 from tiny_lm.tokenizer.config import TokenizerConfig
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Run minimal GPT-2 inference.")
+    parser = argparse.ArgumentParser(description="Run minimal inference from a Lightning checkpoint.")
     parser.add_argument(
         "--checkpoint",
         type=str,
@@ -93,7 +98,7 @@ def sample_top_p(probs: torch.Tensor, top_p: float) -> torch.Tensor:
 
 @torch.no_grad()
 def generate(
-    model: GPT2,
+    model: GPT2 | Llama3,
     tokenizer: tiktoken.Encoding,
     prompt: str,
     max_new_tokens: int,
@@ -129,25 +134,60 @@ def generate(
     return tokenizer.decode(input_ids[0].tolist())
 
 
+def _load_model_config(path: str | Path) -> GPT2Config | Llama3Config:
+    """Load model config from YAML, detecting model_type."""
+    with open(path) as f:
+        data = yaml.safe_load(f) or {}
+    model_type = data.get("model_type")
+    if model_type == "gpt2":
+        return GPT2Config(**data)
+    if model_type == "llama3":
+        return Llama3Config(**data)
+    raise ValueError(f"Unknown model_type '{model_type}' in {path}")
+
+
 def main() -> None:
     args = parse_args()
     checkpoint_path = Path(args.checkpoint)
     if not checkpoint_path.exists():
         raise FileNotFoundError(f"Checkpoint not found: {checkpoint_path}")
 
-    config = GPT2Config.from_yaml(args.model_config)
-    model = GPT2(
-        vocab_size=config.vocab_size,
-        d_model=config.d_model,
-        n_layers=config.n_layers,
-        n_heads=config.n_heads,
-        d_ff=config.d_ff,
-        context_length=config.context_length,
-        emb_dropout=0.0,
-        attn_dropout=0.0,
-        resid_dropout=0.0,
-        ffn_dropout=0.0,
-    )
+    config = _load_model_config(args.model_config)
+
+    if isinstance(config, GPT2Config):
+        model = GPT2(
+            vocab_size=config.vocab_size,
+            d_model=config.d_model,
+            n_layers=config.n_layers,
+            n_heads=config.n_heads,
+            d_ff=config.d_ff,
+            context_length=config.context_length,
+            emb_dropout=0.0,
+            attn_dropout=0.0,
+            resid_dropout=0.0,
+            ffn_dropout=0.0,
+        )
+    else:  # Llama3Config
+        model = Llama3(
+            vocab_size=config.vocab_size,
+            d_model=config.d_model,
+            n_layers=config.n_layers,
+            n_heads=config.n_heads,
+            context_length=config.context_length,
+            n_kv_heads=config.n_kv_heads,
+            ffn_hidden_dim=config.ffn_hidden_dim,
+            multiple_of=config.multiple_of,
+            rope_theta=config.rope_theta,
+            norm_eps=config.norm_eps,
+            emb_dropout=0.0,
+            attn_dropout=0.0,
+            resid_dropout=0.0,
+            ffn_dropout=0.0,
+            qkv_bias=config.qkv_bias,
+            ffn_bias=config.ffn_bias,
+            attn_backend=config.attn_backend,
+        )
+
     state_dict = load_checkpoint_state(str(checkpoint_path), args.device)
     model.load_state_dict(state_dict, strict=True)
     model.to(args.device)
@@ -175,18 +215,42 @@ def main() -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) == 1:
+        # GPT-2 TinyStories defaults (commented out)
+        # sys.argv.extend(
+        #     [
+        #         "--checkpoint",
+        #         "runs/gpt2-8k-2l-tinystories-8k-20260208-103335/checkpoints/last.ckpt",
+        #         "--model-config",
+        #         "configs/models/gpt2-8k-2l.yaml",
+        #         "--tokenizer",
+        #         "tokenizers/tinystories-8k/tokenizer.pkl",
+        #         "--tokenizer-config",
+        #         "configs/tokenizers/tinystories-8k.yaml",
+        #         "--prompt",
+        #         "Once upon a time",
+        #         "--max-new-tokens",
+        #         "300",
+        #         "--temperature",
+        #         "0.8",
+        #         "--top-p",
+        #         "0.95",
+        #         "--add-bos",
+        #     ]
+        # )
+
+        # Ibis-16 LLaMA 3 Swallow Code defaults
         sys.argv.extend(
             [
                 "--checkpoint",
-                "runs/gpt2-8k-2l-tinystories-8k-20260208-103335/checkpoints/last.ckpt",
+                "runs/ibis-16-swallow-code-8k-20260218-174533/checkpoints/last.ckpt",
                 "--model-config",
-                "configs/models/gpt2-8k-2l.yaml",
+                "runs/ibis-16-swallow-code-8k-20260218-174533/configs/ibis-16.yaml",
                 "--tokenizer",
-                "tokenizers/tinystories-8k/tokenizer.pkl",
+                "tokenizers/swallow-code-8k/tokenizer.pkl",
                 "--tokenizer-config",
-                "configs/tokenizers/tinystories-8k.yaml",
+                "configs/tokenizers/swallow-code-8k.yaml",
                 "--prompt",
-                "Once upon a time",
+                "def fibonacci(n):",
                 "--max-new-tokens",
                 "300",
                 "--temperature",
